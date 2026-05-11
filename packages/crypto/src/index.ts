@@ -16,6 +16,10 @@ export type { HkdfInput } from "./hkdf.ts";
 
 export { deriveSessionSeed } from "./hkdf.ts";
 
+export { sessionEndorsementMessage } from "./sessionMessage.ts";
+
+export { masterPublicFingerprintHex } from "./fingerprint.ts";
+
 export type { Ed25519Keypair } from "./ed25519.ts";
 
 export { keypairFromSeed, signDetached, verifyDetached } from "./ed25519.ts";

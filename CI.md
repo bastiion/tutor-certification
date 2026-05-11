@@ -173,7 +173,10 @@ nix develop -c actionlint -version
 
 | Script | What it does |
 |--------|----------------|
-| `ci:local` | `typecheck` → `test` → `build` → `build:compose` → `test:backend:coverage` → `analyse:backend` (Docker required for PHP parts; **no** Cypress unless you run it separately) |
+| `openapi` | Regenerate committed `api/public/openapi.json` from PHP attributes (`docker compose … composer php openapi:generate`) |
+| `openapi:check` | Fail if the spec on disk differs from a fresh scan (same as `SpecFreshnessTest` in CI) |
+| `openapi:backend` | Alias for `openapi` (kept for older docs / muscle memory) |
+| `ci:local` | `typecheck` → `test` → `build` → `build:compose` → `openapi:check` → `test:backend:coverage` → `analyse:backend` (Docker required for PHP parts; **no** Cypress unless you run it separately) |
 | `ci:act:list` | `act --list` |
 | `ci:act` | `act pull_request --verbose` |
 

@@ -8,7 +8,9 @@ import {
   boxSeal,
   deriveSessionSeed,
   keypairFromSeed,
+  masterPublicFingerprintHex,
   ready,
+  sessionEndorsementMessage,
   signDetached,
   base64urlDecode,
 } from "@ikwsd/crypto";
@@ -32,26 +34,6 @@ export interface SignRevocationOpts {
 
 export interface SignRevocationResult {
   signature: string;
-}
-
-function sessionEndorsementMessage(
-  courseId: string,
-  validUntilUnix: number,
-  kCoursePublicRaw: Uint8Array,
-): Uint8Array {
-  const enc = new TextEncoder();
-  const idBytes = enc.encode(courseId);
-  const out = new Uint8Array(idBytes.length + 8 + kCoursePublicRaw.length);
-  out.set(idBytes, 0);
-  const view = new DataView(out.buffer, out.byteOffset + idBytes.length, 8);
-  view.setBigUint64(0, BigInt(validUntilUnix), false);
-  out.set(kCoursePublicRaw, idBytes.length + 8);
-  return out;
-}
-
-function masterPublicFingerprintHex(masterPk: Uint8Array): string {
-  const hash = sodium.crypto_generichash(32, masterPk);
-  return [...hash].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function uint8ToStdBase64(u: Uint8Array): string {

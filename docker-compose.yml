@@ -17,7 +17,7 @@ services:
       - api_vendor:/var/www/html/vendor
     environment:
       # Bind-mounted ./api is often root-owned; use a container-writable SQLite file for local dev.
-      IKWSD_SQLITE_PATH: /tmp/api-certs.sqlite
+      API_SQLITE_PATH: /tmp/api-certs.sqlite
       MAILPIT_INTEGRATION: "1"
       MAILPIT_API_BASE: http://mailpit:8025
       SMTP_HOST: mailpit
