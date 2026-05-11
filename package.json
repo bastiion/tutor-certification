@@ -8,7 +8,13 @@
     "start": "NODE_ENV=production bun src/index.ts",
     "build": "bun run build.ts",
     "cypress": "cypress run",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "composer:backend": "docker compose run --rm --entrypoint composer php install",
+    "test:backend": "docker compose run --rm --entrypoint composer php test",
+    "test:backend:coverage": "docker compose run --rm --entrypoint composer php test:coverage-bootstrap",
+    "analyse:backend": "docker compose run --rm --entrypoint composer php analyse"
   },
   "dependencies": {
     "bun-plugin-tailwind": "^0.1.2",
