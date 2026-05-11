@@ -13,3 +13,9 @@
     @apply min-h-screen;
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
