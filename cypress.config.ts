@@ -1,5 +1,4 @@
 import { defineConfig } from "cypress";
-import type { MintSessionCredentialOpts, SignRevocationOpts } from "./e2e/support/tasks/apiCryptoTasks";
 import { mintSessionCredential, signRevocationDocument } from "./e2e/support/tasks/apiCryptoTasks";
 
 const baseUrl =
@@ -18,10 +17,10 @@ export default defineConfig({
     },
     setupNodeEvents(on) {
       on("task", {
-        mintSessionCredential(opts?: MintSessionCredentialOpts) {
+        mintSessionCredential(opts) {
           return mintSessionCredential(opts ?? {});
         },
-        signRevocationDocument(opts: SignRevocationOpts) {
+        signRevocationDocument(opts) {
           return signRevocationDocument(opts);
         },
       });
