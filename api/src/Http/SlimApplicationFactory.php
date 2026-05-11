@@ -17,6 +17,7 @@ use App\Db\Bootstrap as DbBootstrap;
 use App\Env;
 use App\Mail\CertificateMailer;
 use App\Middleware\BearerTokenMiddleware;
+use App\Middleware\CorsMiddleware;
 use App\Middleware\JsonErrorMiddleware;
 use App\Repository\RevocationRepository;
 use App\Repository\SessionRepository;
@@ -64,6 +65,14 @@ final class SlimApplicationFactory
         $app->addBodyParsingMiddleware();
         $app->add(new JsonErrorMiddleware());
 
+        $corsRaw = Env::stringOrNull('CORS_ALLOWED_ORIGINS');
+        if ($corsRaw !== null && $corsRaw !== '') {
+            $allowedOrigins = self::parseCorsAllowedOrigins($corsRaw);
+            if ($allowedOrigins !== []) {
+                $app->add(new CorsMiddleware($allowedOrigins));
+            }
+        }
+
         $errorMiddleware = $app->addErrorMiddleware(false, true, true);
         $errorMiddleware->setDefaultErrorHandler(new ApiJsonErrorHandler($responseFactory), true);
 
@@ -87,5 +96,21 @@ final class SlimApplicationFactory
         $app->post('/api/revocations', $revoke)->add($bearer);
 
         return $app;
+    }
+
+    /**
+     * @return list<non-empty-string>
+     */
+    private static function parseCorsAllowedOrigins(string $commaSeparated): array
+    {
+        $out = [];
+        foreach (explode(',', $commaSeparated) as $part) {
+            $origin = trim($part);
+            if ($origin !== '') {
+                $out[] = $origin;
+            }
+        }
+
+        return $out;
     }
 }
