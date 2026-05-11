@@ -1,0 +1,257 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  workflow-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Actionlint
+        uses: docker://docker.io/rhysd/actionlint:1.7.7
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install frontend (workspaces)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build (dist/)
+        run: bun run build
+
+      - name: Build static SPA for nginx (/tutor/, /enroll/, /verify/)
+        run: bun run build:compose
+
+      - name: Upload static-spa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-spa
+          path: api/public/static-spa/
+          if-no-files-found: error
+
+      - name: Job summary — frontend
+        if: success()
+        run: |
+          {
+            echo "## Frontend"
+            echo "- typecheck / build / build:compose succeeded"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build PHP image
+        run: docker compose build php
+
+      - name: Composer install
+        run: docker compose run --rm --entrypoint composer php install --no-interaction --no-progress
+
+      - name: Pest (coverage gate + Mailpit integration + JUnit report)
+        run: |
+          docker compose run --rm --entrypoint sh php -c \
+            'set -eu; cd /var/www/html && ./vendor/bin/pest \
+              --coverage \
+              --coverage-html=coverage/html \
+              --coverage-clover=coverage/clover.xml \
+              --log-junit=coverage/junit.xml \
+              --min=100'
+
+      - name: PHPStan
+        run: |
+          docker compose run --rm --entrypoint sh php -c \
+            'set -eu; cd /var/www/html && ./vendor/bin/phpstan analyse --memory-limit=-1 --error-format=github'
+
+      - name: Upload PHPUnit JUnit XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-php
+          path: api/coverage/junit.xml
+          if-no-files-found: error
+
+      - name: Upload Clover coverage XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover-php
+          path: api/coverage/clover.xml
+          if-no-files-found: error
+
+      - name: Upload HTML coverage site
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-php
+          path: api/coverage/html/
+          if-no-files-found: error
+
+      - name: Job summary — backend
+        if: success()
+        run: |
+          {
+            echo "## Backend"
+            echo "- Pest with coverage (--min 100 %) + Mailpit integration"
+            echo "- PHPStan (GitHub annotations via error-format)"
+            echo ""
+            echo "Artifacts: \`coverage-clover-php\`, \`coverage-html-php\`, \`junit-php\`"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  compose-smoke-and-e2e:
+    needs:
+      - frontend
+      - backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: static-spa
+          path: api/public/static-spa/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-html-php
+          path: api/coverage/html/
+
+      - name: Smoke — docker compose up
+        run: docker compose up -d
+
+      - name: Wait for endpoints
+        run: |
+          set -eu
+          for path in '/' '/dev/' '/info.php' '/tutor/' '/enroll/' '/verify/' '/coverage/'; do
+            echo "WAIT $path"
+            for i in $(seq 1 60); do
+              if curl -fsS "http://127.0.0.1:7123${path}" >/dev/null 2>&1; then
+                echo "OK $path"
+                break
+              fi
+              if [[ "$i" -eq 60 ]]; then
+                echo "::error::nginx did not become ready for $path"
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Install Cypress (Bun workspaces)
+        run: bun install --frozen-lockfile
+
+      - uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          install: false
+          command: bun run cypress:compose
+
+      - name: Tear down Compose
+        if: always()
+        run: docker compose down --volumes
+
+      - name: Job summary — compose + Cypress
+        if: success()
+        run: |
+          {
+            echo "## Compose smoke + Cypress"
+            echo "- Loaded static SPA + HTML coverage artifacts into api/"
+            echo "- Verified HTTP endpoints and ran \`cypress:compose\`"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Bun install + audit
+        run: |
+          bun install --frozen-lockfile
+          bun audit
+
+      - name: Build PHP image
+        run: docker compose build php
+
+      - name: Composer install + audit
+        run: |
+          docker compose run --rm --entrypoint composer php install --no-interaction --no-progress
+          docker compose run --rm --entrypoint composer php audit
+
+      - name: Trivy filesystem scan (informational exit)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          skip-dirs: node_modules,.git,vendor,dist,api/vendor,api/public/static-spa,out
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: "0"
+
+      - name: Job summary — security
+        if: success()
+        run: |
+          {
+            echo "## Security"
+            echo "- \`bun audit\`, \`composer audit\`, Trivy fs (exit 0 informational)"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  ci-summary:
+    needs:
+      - workflow-lint
+      - frontend
+      - backend
+      - compose-smoke-and-e2e
+      - security
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compose summary table
+        run: |
+          {
+            echo "## CI rollup"
+            echo ""
+            echo "| Job | Result |"
+            echo "|-----|--------|"
+            echo "| workflow-lint | ${{ needs.workflow-lint.result }} |"
+            echo "| frontend | ${{ needs.frontend.result }} |"
+            echo "| backend | ${{ needs.backend.result }} |"
+            echo "| compose-smoke-and-e2e | ${{ needs.compose-smoke-and-e2e.result }} |"
+            echo "| security | ${{ needs.security.result }} |"
+            echo ""
+            echo "Artifacts: **static-spa**, **coverage-html-php**, **coverage-clover-php**, **junit-php**."
+          } >>"$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if mandatory jobs failed
+        if: >-
+          ${{
+            needs.workflow-lint.result != 'success'
+            || needs.frontend.result != 'success'
+            || needs.backend.result != 'success'
+            || needs.compose-smoke-and-e2e.result != 'success'
+            || needs.security.result != 'success'
+          }}
+        run: |
+          echo "::error::One or more CI jobs failed, were cancelled, or were skipped unexpectedly."
+          exit 1

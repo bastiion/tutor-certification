@@ -16,6 +16,8 @@
           config.allowUnfree = true;
         };
         buildInputs = with pkgs; [
+          act
+          actionlint
           bun
           docker-compose
           php84
