@@ -9,7 +9,7 @@ Quick orientation if you mainly know PHP or classic JavaScript (**no** deep TS t
 - **JavaScript (JS)** is the language browsers (and Bun/Node) run.
 - **TypeScript (TS)** is JS **plus optional static types**. Files often end in **`.ts`** (logic) or **`.tsx`** (logic + UI markup in **JSX**). The dev server / bundler strips types and emits JS.
 
-In this repo, app code under [`src/`](../src/) is largely TypeScript + React.
+In this repo, UI app code lives under [`apps/`](../apps/) (workspaces) and shared libraries under [`packages/`](../packages/).
 
 ---
 
@@ -57,7 +57,7 @@ A **schema** library for JS/TS: describe the shape you expect (e.g. form input) 
 
 ## `tsconfig.json`
 
-Tells the **TypeScript compiler** (and your editor) how strict to be, which syntax level to allow, and how paths like `@/` resolve. It does **not** replace a test runner; it’s for types and IDE support.
+Tells the **TypeScript compiler** (and your editor) how strict to be, which syntax level to allow, and path aliases (e.g. `@ikwsd/crypto`). It does **not** replace a test runner; it’s for types and IDE support.
 
 ---
 
@@ -73,10 +73,10 @@ A **browser end-to-end (E2E) test** runner: scripts drive a real browser (clicks
 
 ## Vite / webpack?
 
-This template does **not** use Vite or webpack for the main dev path; **Bun’s bundler** and dev server handle builds and HMR ([`src/index.ts`](../src/index.ts)).
+This template does **not** use Vite or webpack for the main dev path; **Bun’s bundler** and dev server handle builds and HMR ([`server.ts`](../server.ts)).
 
 ---
 
 ## `build.ts`
 
-A **custom build script** (Bun) that produces static output for production (default `dist/`). Invoked via `bun run build` from [`package.json`](../package.json).
+A **custom build script** (Bun) that produces static output for production (under `dist/tutor/`, `dist/enroll/`, `dist/verify/`). Invoked via `bun run build` from [`package.json`](../package.json).

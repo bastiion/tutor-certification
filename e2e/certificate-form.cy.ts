@@ -1,6 +1,6 @@
 describe("Teilnahmebescheinigungen form", () => {
   it("fills required fields and shows preview", () => {
-    cy.visit("/");
+    cy.visit("/tutor/");
 
     cy.contains("label", "Titel").find("input").clear().type("E2E Teilnahmebescheinigung");
     cy.contains("label", "Datum").find("input").clear().type("11. Mai 2026");

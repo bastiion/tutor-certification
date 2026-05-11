@@ -33,7 +33,8 @@ Example:
   process.exit(0);
 }
 
-const toCamelCase = (str: string): string => str.replace(/-([a-z])/g, g => g[1].toUpperCase());
+const toCamelCase = (str: string): string =>
+  str.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
 
 const parseValue = (value: string): any => {
   if (value === "true") return true;
@@ -48,7 +49,8 @@ const parseValue = (value: string): any => {
 };
 
 function parseArgs(): Partial<Bun.BuildConfig> {
-  const config: Partial<Bun.BuildConfig> = {};
+  // Dynamic CLI mapping; use a loose record so strict typing doesn't fight argv parsing.
+  const config: Record<string, unknown> = {};
   const args = process.argv.slice(2);
 
   for (let i = 0; i < args.length; i++) {
@@ -80,16 +82,19 @@ function parseArgs(): Partial<Bun.BuildConfig> {
 
     key = toCamelCase(key);
 
-    if (key.includes(".")) {
-      const [parentKey, childKey] = key.split(".");
-      config[parentKey] = config[parentKey] || {};
-      config[parentKey][childKey] = parseValue(value);
+    const dot = key.indexOf(".");
+    if (dot > 0) {
+      const parentKey = key.slice(0, dot);
+      const childKey = key.slice(dot + 1);
+      const parent = (config[parentKey] as Record<string, unknown> | undefined) ?? {};
+      parent[childKey] = parseValue(value);
+      config[parentKey] = parent;
     } else {
       config[key] = parseValue(value);
     }
   }
 
-  return config;
+  return config as Partial<Bun.BuildConfig>;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -108,42 +113,74 @@ const formatFileSize = (bytes: number): string => {
 console.log("\n🚀 Starting build process...\n");
 
 const cliConfig = parseArgs();
-const outdir = cliConfig.outdir || path.join(process.cwd(), "dist");
+const distRoot =
+  typeof cliConfig.outdir === "string"
+    ? path.resolve(process.cwd(), cliConfig.outdir)
+    : path.join(process.cwd(), "dist");
 
-if (existsSync(outdir)) {
-  console.log(`🗑️ Cleaning previous build at ${outdir}`);
-  await rm(outdir, { recursive: true, force: true });
+const { outdir: _omitOutdir, publicPath: _omitPublicPath, ...buildOverrides } = cliConfig;
+
+if (existsSync(distRoot)) {
+  console.log(`🗑️ Cleaning previous build at ${distRoot}`);
+  await rm(distRoot, { recursive: true, force: true });
 }
 
-const start = performance.now();
-
-const entrypoints = [...new Bun.Glob("**.html").scanSync("src")]
-  .map(a => path.resolve("src", a))
-  .filter(dir => !dir.includes("node_modules"));
-console.log(`📄 Found ${entrypoints.length} HTML ${entrypoints.length === 1 ? "file" : "files"} to process\n`);
-
-const result = await Bun.build({
-  entrypoints,
-  outdir,
-  plugins: [plugin],
-  minify: true,
-  target: "browser",
-  sourcemap: "linked",
-  define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
+const apps: {
+  id: string;
+  entry: string;
+  /** Mirror of public URL prefix (e.g. /enroll/ for participant). */
+  outSegment: string;
+  publicPath: string;
+}[] = [
+  { id: "tutor", entry: "apps/tutor/index.html", outSegment: "tutor", publicPath: "/tutor/" },
+  {
+    id: "participant",
+    entry: "apps/participant/index.html",
+    outSegment: "enroll",
+    publicPath: "/enroll/",
   },
-  ...cliConfig,
-});
+  { id: "verify", entry: "apps/verify/index.html", outSegment: "verify", publicPath: "/verify/" },
+];
+
+const start = performance.now();
+const outputRows: { File: string; Type: string; Size: string }[] = [];
+
+for (const app of apps) {
+  const entry = path.resolve(app.entry);
+  const outdir = path.join(distRoot, app.outSegment);
+  console.log(`📦 ${app.id} → ${path.relative(process.cwd(), outdir)} (publicPath ${app.publicPath})\n`);
+
+  const result = await Bun.build({
+    ...buildOverrides,
+    entrypoints: [entry],
+    outdir,
+    publicPath: app.publicPath,
+    plugins: [plugin],
+    minify: true,
+    target: "browser",
+    sourcemap: "linked",
+    define: {
+      "process.env.NODE_ENV": JSON.stringify("production"),
+    },
+  });
+
+  if (!result.success) {
+    console.error(result.logs);
+    process.exit(1);
+  }
+
+  for (const output of result.outputs) {
+    outputRows.push({
+      File: path.relative(process.cwd(), output.path),
+      Type: output.kind,
+      Size: formatFileSize(output.size),
+    });
+  }
+}
 
 const end = performance.now();
 
-const outputTable = result.outputs.map(output => ({
-  File: path.relative(process.cwd(), output.path),
-  Type: output.kind,
-  Size: formatFileSize(output.size),
-}));
-
-console.table(outputTable);
+console.table(outputRows);
 const buildTime = (end - start).toFixed(2);
 
 console.log(`\n✅ Build completed in ${buildTime}ms\n`);

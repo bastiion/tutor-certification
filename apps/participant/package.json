@@ -1,0 +1,17 @@
+{
+  "name": "@ikwsd/participant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo \"Run the dev server from the repo root: bun dev\" && exit 1",
+    "build": "echo \"Production bundles are built from the repo root: bun run build\" && exit 1"
+  },
+  "dependencies": {
+    "@ikwsd/crypto": "workspace:*",
+    "bun-plugin-tailwind": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwindcss": "catalog:"
+  }
+}

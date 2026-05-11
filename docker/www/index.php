@@ -43,7 +43,7 @@
 
     <h2>Other services</h2>
     <ul>
-        <li><a href="http://localhost:3000">Bun/React frontend</a> (<code>bun dev</code>)</li>
+        <li><a href="http://localhost:3000/tutor/">Bun/React frontend (tutor)</a> (<code>bun dev</code>; also <code>/enroll/</code>, <code>/verify/</code>)</li>
         <li><a href="http://localhost:8025">Mailpit</a></li>
     </ul>
 

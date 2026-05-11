@@ -1,6 +1,6 @@
 # Teilnahmebescheinigungen
 
-Hosted-style service **in development**: digitally signed participation certificates for online courses, time-limited enrollment links, tutor-side crypto in the browser, and minimal server-side state ([concept](doc/plan/key-signing-courses-plan.md)). This repository mixes a **Bun/React** SPA with a **PHP** API scaffold and Docker-based tooling.
+Hosted-style service **in development**: digitally signed participation certificates for online courses, time-limited enrollment links, tutor-side crypto in the browser, and minimal server-side state ([concept](doc/plan/key-signing-courses-plan.md)). The **frontend** is a **Bun workspaces** monorepo with three SPA entrypoints and a shared package; the **backend** is a **PHP** API scaffold with Docker-based tooling.
 
 ---
 
@@ -20,7 +20,7 @@ This section describes the **intended experience** once the roadmap is implement
 | **Participant** | Opens the link while it is valid, enters their details (and optional email where supported), downloads or prints a certificate artifact (e.g. JSON + QR / print layout). |
 | **Third party** | Verifies a certificate using published keys and cryptographic checks; online checks may hit a revocation endpoint. |
 
-**Today:** there is nothing to “install” or “visit” as an end user without running the developer stack below. The running SPA is mainly for iteration; the public PHP entrypoint under Docker returns a small JSON bootstrap response for connectivity checks.
+**Today:** there is nothing to “install” or “visit” as an end user without running the developer stack below. The running SPAs are mainly for iteration; the public PHP entrypoint under Docker returns a small JSON bootstrap response for connectivity checks.
 
 For **deep product and crypto design**, see [Concept — Participation Certificate Service](doc/plan/key-signing-courses-plan.md).
 
@@ -50,7 +50,11 @@ nix develop
 
 | Path | Contents |
 |------|----------|
-| [`src/`](src/) | Bun dev server (`src/index.ts`), React app, Tailwind |
+| [`apps/tutor`](apps/tutor) | Tutor / certificate UI (current main React app) |
+| [`apps/participant`](apps/participant) | Enrollment SPA scaffold (URL prefix `/enroll/` in dev) |
+| [`apps/verify`](apps/verify) | Verification SPA scaffold (URL prefix `/verify/` in dev) |
+| [`packages/crypto`](packages/crypto) | Shared `@ikwsd/crypto` workspace package (placeholder until real browser crypto lands here) |
+| [`server.ts`](server.ts) | Bun dev server: routes `/tutor/`, `/enroll/`, `/verify/` |
 | [`api/`](api/) | Composer project: bootstrap PHP code, Pest tests, PHPStan, `public/index.php` |
 | [`docker/`](docker/) | Custom PHP image, nginx virtual host |
 | [`e2e/`](e2e/) | Cypress specs |
@@ -61,13 +65,16 @@ nix develop
 
 ### Frontend (Bun + React + Tailwind)
 
+Root [`package.json`](package.json) declares **workspaces** (`apps/*`, `packages/*`) and a **catalog** for shared dependency versions (referenced as `catalog:` inside workspace packages).
+
 ```bash
 nix develop -c bun install
 nix develop -c bun dev
 ```
 
-- Default URL: http://localhost:3000 (`PORT` overrides the dev server port.)
-- Production build: `nix develop -c bun run build` (runs [`build.ts`](build.ts)).
+- Dev server default: http://localhost:3000 (`PORT` overrides the port). **`/` redirects to `/tutor/`**. Apps: **`/tutor/`** (tutor), **`/enroll/`** (participant scaffold), **`/verify/`** (verify scaffold).
+- Production build: `nix develop -c bun run build` (runs [`build.ts`](build.ts) → `dist/tutor/`, `dist/enroll/`, `dist/verify/`).
+- Typecheck: `nix develop -c bun run typecheck`.
 
 ---
 
@@ -100,7 +107,7 @@ Inside the **`php`** service, `MAILPIT_INTEGRATION=1`, `MAILPIT_API_BASE`, `SMTP
 |---------|--------|
 | `bun run composer:backend` | `composer install` in container |
 | `bun run test:backend` | Pest |
-| `bun run test:backend:coverage` | Pest + coverage + `--min=100` for `src/` |
+| `bun run test:backend:coverage` | Pest + coverage + `--min=100` for `api/src/` |
 | `bun run analyse:backend` | PHPStan |
 
 **Without Docker**, from `nix develop` you can use host `composer`/`php`:
@@ -117,7 +124,7 @@ Coverage artifacts (when generated): [`api/coverage/html`](api/coverage) and `ap
 
 ### End-to-end tests (Cypress)
 
-Cypress expects the frontend at `http://localhost:3000` (see [`cypress.config.cjs`](cypress.config.cjs)). On **NixOS**, always run Cypress from the dev shell so the Nix Electron binary is used (see [.cursor/rules/cypress-test-runner.mdc](.cursor/rules/cypress-test-runner.mdc)):
+Cypress uses [`cypress.config.cjs`](cypress.config.cjs) with **`baseUrl`**: `http://localhost:3000`. The tutor form smoke test visits **`/tutor/`**. On **NixOS**, always run Cypress from the dev shell so the Nix Electron binary is used (see [.cursor/rules/cypress-test-runner.mdc](.cursor/rules/cypress-test-runner.mdc)):
 
 ```bash
 nix develop -c bun dev                 # terminal 1
@@ -147,7 +154,7 @@ nix develop -c bun run test:backend:coverage
 nix develop -c bun run analyse:backend
 ```
 
-Frontend: rely on existing TypeScript/`bun dev` workflows; Cypress when UI paths change.
+Frontend: `bun run typecheck`, `bun run build`; Cypress when tutor UI paths change.
 
 ---
 
@@ -156,4 +163,5 @@ Frontend: rely on existing TypeScript/`bun dev` workflows; Cypress when UI paths
 - [Concept — participation certificates & cryptography](doc/plan/key-signing-courses-plan.md)
 - [Monorepo / SPA / PHP implementation plan](doc/plan/key-signing-courses-plan-implementation.md)
 - [Bootstrap log — PHP tooling & Mailpit](doc/implementation/2026-05-11-php-backend-bootstrap.md)
+- [UI workspaces layout (this slice)](doc/implementation/2026-05-11-ui-workspaces-layout.md)
 - Frontend conventions: [`CLAUDE.md`](CLAUDE.md) (Bun-first tooling)

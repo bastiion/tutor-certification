@@ -41,12 +41,12 @@ Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully suppor
 
 Server:
 
-```ts#index.ts
-import index from "./index.html"
+```ts#server.ts
+import tutor from "./apps/tutor/index.html"
 
 Bun.serve({
   routes: {
-    "/": index,
+    "/tutor/*": tutor,
     "/api/users/:id": {
       GET: (req) => {
         return new Response(JSON.stringify({ id: req.params.id }));
@@ -102,10 +102,10 @@ export default function Frontend() {
 root.render(<Frontend />);
 ```
 
-Then, run index.ts
+Then, run the dev server:
 
 ```sh
-bun --hot ./index.ts
+bun --hot ./server.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.

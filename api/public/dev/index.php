@@ -40,7 +40,7 @@ $coverageHref = htmlspecialchars($coverageUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     </ul>
     <h2>Other local services</h2>
     <ul>
-        <li><a href="http://localhost:3000">Bun/React frontend dev server</a> — start with <code>nix develop -c bun dev</code>.</li>
+        <li><a href="http://localhost:3000/tutor/">Bun/React frontend (tutor app)</a> — start with <code>nix develop -c bun dev</code> (paths: <code>/tutor/</code>, <code>/enroll/</code>, <code>/verify/</code>).</li>
         <li><a href="http://localhost:8025">Mailpit</a> — captured SMTP (Docker Compose).</li>
     </ul>
     <p class="muted">

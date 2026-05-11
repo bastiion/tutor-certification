@@ -23,7 +23,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@ikwsd/crypto": ["./packages/crypto/src/index.ts"],
+      "@ikwsd/tutor/*": ["./apps/tutor/*"],
+      "@ikwsd/participant/*": ["./apps/participant/*"],
+      "@ikwsd/verify/*": ["./apps/verify/*"]
     },
 
     // Some stricter flags (disabled by default)
@@ -32,5 +35,6 @@
     "noPropertyAccessFromIndexSignature": false
   },
 
-  "exclude": ["node_modules", "dist", "e2e"]
+  "include": ["server.ts", "build.ts", "bun-env.d.ts", "apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"],
+  "exclude": ["node_modules", "dist", "api", "e2e"]
 }
