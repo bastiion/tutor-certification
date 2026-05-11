@@ -1,0 +1,8 @@
+.git
+**/node_modules
+**/dist
+**/out
+api/vendor
+api/coverage
+api/.phpunit.cache
+**/*.sqlite

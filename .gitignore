@@ -6,7 +6,7 @@ out
 dist
 *.tgz
 
-# code coverage
+# code coverage (frontend or generic)
 coverage
 *.lcov
 
@@ -42,3 +42,25 @@ cypress/downloads
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# PHP API (Composer, generated reports, tooling caches — keep composer.lock tracked)
+api/vendor
+api/coverage
+
+# PHPUnit 10+/Pest caches (often under api/ but match anywhere)
+.phpunit.cache
+.phpunit.result.cache
+
+# PHPStan caches / temp (default result-cache path when running from api/)
+api/tmp/phpstan
+api/.phpstan.cache
+
+# Composer local installs / env (do not commit secrets)
+api/auth.json
+api/.composer
+composer.phar
+
+# Local SQLite databases (PDO dev / future schema seeds)
+*.sqlite
+*.sqlite-journal
+*.sqlite3
