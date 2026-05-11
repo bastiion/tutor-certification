@@ -1,5 +1,5 @@
 {
-  "name": "ikwsd/teilnahmebescheinigungen-api",
+  "name": "teilnahmebescheinigungen/api",
   "description": "PHP API / Slim backend for Teilnahmebescheinigungen",
   "type": "project",
   "license": "MIT",

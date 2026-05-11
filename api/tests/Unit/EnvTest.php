@@ -12,7 +12,7 @@ describe('Env', function (): void {
     });
 
     test('stringOrNull returns null when unset', function (): void {
-        $name = 'IKWSD_ENV_NULL_' . bin2hex(random_bytes(4));
+        $name = 'API_ENV_NULL_' . bin2hex(random_bytes(4));
         expect(Env::stringOrNull($name))->toBeNull();
     });
 

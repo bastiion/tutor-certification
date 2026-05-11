@@ -148,6 +148,7 @@ final readonly class EnrollAction
                 'name' => $sessionRow->instituteName,
                 'key_fingerprint' => $sessionRow->kMasterPublicFingerprintHex,
             ],
+            kMasterPublicBase64Url: $sessionRow->kMasterPublicBase64Url,
             kCoursePublicBase64Url: $sessionRow->kCoursePublicBase64Url,
             sessionSigBase64Url: $sessionRow->sessionSigBase64Url,
             certificateSigBase64Url: '',

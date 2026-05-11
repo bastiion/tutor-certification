@@ -16,9 +16,9 @@ describe('Enroll mail integration', function (): void {
         $client = new MailpitHttpClient(is_string($apiBase) ? rtrim($apiBase, '/') : '');
         $client->deleteAllMessages();
 
-        $sqlite = tempnam(sys_get_temp_dir(), 'ikwsd-enroll-');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-enroll-');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         $apiRoot = dirname(__DIR__, 2);
         $app = SlimApplicationFactory::fromApiRoot($apiRoot);

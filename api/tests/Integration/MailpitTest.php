@@ -28,7 +28,7 @@ test('Mailpit captures SMTP and exposes message via API', function (): void {
 
     $mailer->sendBootstrapProbe(
         to: 'tutor@example.com',
-        subject: 'IKWSD bootstrap mail',
+        subject: 'API bootstrap mail',
         textBody: "Hello\n\n{$token}",
         htmlBody: '<p>Hello</p><p>' . htmlspecialchars($token, ENT_QUOTES | ENT_HTML5, 'UTF-8') . '</p>',
     );
@@ -66,7 +66,7 @@ test('Mailpit captures SMTP and exposes message via API', function (): void {
     $detail = $http->fetchMessagePayload($messageId);
     $subject = $detail['Subject'] ?? '';
 
-    expect($subject)->toBeString()->and($subject)->toContain('IKWSD bootstrap mail');
+    expect($subject)->toBeString()->and($subject)->toContain('API bootstrap mail');
 
     $text = $detail['Text'] ?? '';
     $html = $detail['HTML'] ?? '';

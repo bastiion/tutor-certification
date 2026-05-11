@@ -7,10 +7,10 @@ use App\Db\Bootstrap;
 describe('Db\\Bootstrap', function (): void {
     test('creates sqlite file and applies schema idempotently', function (): void {
         $apiRoot = dirname(__DIR__, 3);
-        $sqlite = tempnam(sys_get_temp_dir(), 'ikwsd-sqlite-');
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-sqlite-');
         expect($sqlite)->not->toBeFalse();
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         $boot = new Bootstrap($apiRoot);
         $pdo1 = $boot->createPdo();

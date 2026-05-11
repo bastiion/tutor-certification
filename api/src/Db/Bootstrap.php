@@ -20,7 +20,7 @@ final class Bootstrap
 
     public function databasePath(): string
     {
-        $override = getenv('IKWSD_SQLITE_PATH');
+        $override = getenv('API_SQLITE_PATH');
         if (is_string($override) && $override !== '') {
             return $override;
         }

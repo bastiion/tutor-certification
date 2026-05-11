@@ -15,6 +15,7 @@ use OpenApi\Attributes as OA;
         'course',
         'participant',
         'institute',
+        'K_master_public',
         'K_course_public',
         'session_sig',
         'certificate_sig',
@@ -39,7 +40,9 @@ final readonly class Certificate
         public array $participant,
         #[OA\Property(properties: [], type: 'object')]
         public array $institute,
-        #[OA\Property(description: 'Ed25519 public (Base64URL)')]
+        #[OA\Property(description: 'Ed25519 institute master public (Base64URL)')]
+        public string $kMasterPublicBase64Url,
+        #[OA\Property(description: 'Ed25519 course public (Base64URL)')]
         public string $kCoursePublicBase64Url,
         #[OA\Property(description: 'Detached endorsement signature (Base64URL)')]
         public string $sessionSigBase64Url,
@@ -50,7 +53,6 @@ final readonly class Certificate
     /** Canonical JSON signing input: entire payload omitting certificate_sig key. */
     public function toSigningJson(): string
     {
-        /** @phpstan-ignore-next-line redundant */
         $blob = [
             'cert_id' => $this->certId,
             'version' => $this->version,
@@ -65,6 +67,7 @@ final readonly class Certificate
                 'name' => $this->institute['name'],
                 'key_fingerprint' => $this->institute['key_fingerprint'],
             ],
+            'K_master_public' => $this->kMasterPublicBase64Url,
             'K_course_public' => $this->kCoursePublicBase64Url,
             'session_sig' => $this->sessionSigBase64Url,
         ];
@@ -87,6 +90,7 @@ final readonly class Certificate
             course: $this->course,
             participant: $this->participant,
             institute: $this->institute,
+            kMasterPublicBase64Url: $this->kMasterPublicBase64Url,
             kCoursePublicBase64Url: $this->kCoursePublicBase64Url,
             sessionSigBase64Url: $this->sessionSigBase64Url,
             certificateSigBase64Url: $sigB64Url,
@@ -110,6 +114,7 @@ final readonly class Certificate
                 'name' => $this->institute['name'],
                 'key_fingerprint' => $this->institute['key_fingerprint'],
             ],
+            'K_master_public' => $this->kMasterPublicBase64Url,
             'K_course_public' => $this->kCoursePublicBase64Url,
             'session_sig' => $this->sessionSigBase64Url,
             'certificate_sig' => $this->certificateSigBase64Url,

@@ -62,7 +62,6 @@ final class Tokens
             return null;
         }
 
-        /** @phpstan-ignore-next-line argument unpacking */
         $validUntilUnpack = unpack('Jvalid', $validUntilPacked);
         if (! is_array($validUntilUnpack) || ! isset($validUntilUnpack['valid'])) {
             return null;

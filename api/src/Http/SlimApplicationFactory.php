@@ -9,6 +9,7 @@ use App\Action\CreateSessionAction;
 use App\Action\EnrollAction;
 use App\Action\HealthAction;
 use App\Action\OpenApiAction;
+use App\Action\ServerPublicKeyAction;
 use App\Action\VerifyAction;
 use App\Crypto\Signer;
 use App\Crypto\Tokens;
@@ -69,6 +70,7 @@ final class SlimApplicationFactory
         $bearer = new BearerTokenMiddleware($tutorToken, $responseFactory);
 
         $health = new HealthAction();
+        $serverPk = new ServerPublicKeyAction($signer);
         $createSession = new CreateSessionAction($sessions, $signer, $tokens, $publicBaseResolved, $tutorEmail);
         $enroll = new EnrollAction($signer, $tokens, $sessions, $mailer, $box);
         $verify = new VerifyAction($revocations);
@@ -77,6 +79,7 @@ final class SlimApplicationFactory
         $openapi = new OpenApiAction($specPath);
 
         $app->get('/api/health', $health);
+        $app->get('/api/server-public-key', $serverPk);
         $app->get('/api/openapi.json', $openapi);
         $app->get('/api/verify/{certId}', $verify);
         $app->post('/api/enroll/{token}', $enroll);

@@ -10,9 +10,9 @@ use Tests\Support\SessionCredentialFixture;
 
 describe('Revocation integration', function (): void {
     test('revoked certificate surfaces on verify', function (): void {
-        $sqlite = tempnam(sys_get_temp_dir(), 'ikwsd-revoke-');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-revoke-');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         $apiRoot = dirname(__DIR__, 2);
         $app = SlimApplicationFactory::fromApiRoot($apiRoot);

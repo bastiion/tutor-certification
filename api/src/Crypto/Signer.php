@@ -121,7 +121,8 @@ final class Signer
     }
 
     /**
-     * SHA-256 fingerprint of Ed25519 public key (lowercase hex, 64 chars).
+     * Fingerprint of Ed25519 master public key: BLAKE2b-256 / libsodium
+     * `crypto_generichash` default size (lowercase hex, 64 chars).
      *
      * @param non-empty-string $ed25519PublicKey32
      */

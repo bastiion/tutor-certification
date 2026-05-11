@@ -35,7 +35,7 @@ final readonly class SessionCredential
         public string $kMasterPublicBase64Url,
         #[OA\Property(description: 'Ed25519 K_course_public, Base64URL no padding')]
         public string $kCoursePublicBase64Url,
-        #[OA\Property(description: 'SHA-256 hex (lowercase) of K_master_public raw bytes')]
+        #[OA\Property(description: 'BLAKE2b-256 (libsodium generichash), lowercase hex of K_master_public raw bytes')]
         public string $kMasterPublicFingerprintHex,
         #[OA\Property(description: 'Detached Ed25519 signature (Base64URL)')]
         public string $sessionSigBase64Url,

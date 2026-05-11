@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "IKWSD Teilnahmebescheinigungen API",
+        "title": "Teilnahmebescheinigungen API",
         "version": "1.0.0"
     },
     "paths": {
@@ -161,6 +161,58 @@
                 }
             }
         },
+        "/api/server-public-key": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Server X25519 public key for sealed-box encryption",
+                "operationId": "b2f630d1e6e834e14db4d2fe0b99f820",
+                "responses": {
+                    "200": {
+                        "description": "Base64URL X25519 public key (32 bytes)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "x25519_pk"
+                                    ],
+                                    "properties": {
+                                        "x25519_pk": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "SERVER_BOX_KEYPAIR_BASE64 missing or invalid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string"
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/verify/{certId}": {
             "get": {
                 "tags": [
@@ -189,6 +241,7 @@
                     "course",
                     "participant",
                     "institute",
+                    "K_master_public",
                     "K_course_public",
                     "session_sig",
                     "certificate_sig"
@@ -214,8 +267,12 @@
                         "properties": {},
                         "type": "object"
                     },
+                    "kMasterPublicBase64Url": {
+                        "description": "Ed25519 institute master public (Base64URL)",
+                        "type": "string"
+                    },
                     "kCoursePublicBase64Url": {
-                        "description": "Ed25519 public (Base64URL)",
+                        "description": "Ed25519 course public (Base64URL)",
                         "type": "string"
                     },
                     "sessionSigBase64Url": {
@@ -275,7 +332,7 @@
                         "type": "string"
                     },
                     "kMasterPublicFingerprintHex": {
-                        "description": "SHA-256 hex (lowercase) of K_master_public raw bytes",
+                        "description": "BLAKE2b-256 (libsodium generichash), lowercase hex of K_master_public raw bytes",
                         "type": "string"
                     },
                     "sessionSigBase64Url": {

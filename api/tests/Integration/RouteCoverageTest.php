@@ -14,8 +14,8 @@ describe('HTTP route coverage', function (): void {
         $_ENV['GIT_SHA'] = 'deadbeef';
 
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-h');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -28,8 +28,8 @@ describe('HTTP route coverage', function (): void {
             putenv('GIT_SHA');
             unset($_ENV['GIT_SHA']);
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
@@ -40,8 +40,8 @@ describe('HTTP route coverage', function (): void {
         $_ENV['GIT_COMMIT_SHA'] = 'abccommit';
 
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-h2');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -52,8 +52,8 @@ describe('HTTP route coverage', function (): void {
             putenv('GIT_COMMIT_SHA');
             unset($_ENV['GIT_COMMIT_SHA']);
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
@@ -64,8 +64,8 @@ describe('HTTP route coverage', function (): void {
         unset($_ENV['GIT_COMMIT_SHA']);
 
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-h3');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -74,15 +74,42 @@ describe('HTTP route coverage', function (): void {
             expect($json['build'] ?? null)->toBe('unknown');
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('GET /api/server-public-key returns libsodium-compatible x25519_pk', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-spk');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $res = AppRequest::dispatch($app, 'GET', '/api/server-public-key');
+            expect($res->getStatusCode())->toBe(200);
+            expect($res->getHeaderLine('Content-Type'))->toContain('application/json');
+
+            $signer = new Signer();
+            /** @var array{x25519_pk: string} $json */
+            $json = json_decode((string) $res->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+            $pk = $signer->base64UrlDecode($json['x25519_pk']);
+            expect(strlen($pk))->toBe(SODIUM_CRYPTO_BOX_PUBLICKEYBYTES);
+
+            $full = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            expect(substr($full, SODIUM_CRYPTO_BOX_SECRETKEYBYTES, SODIUM_CRYPTO_BOX_PUBLICKEYBYTES))->toBe($pk);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when credential misses required fields', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-sf');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -93,15 +120,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when JSON body is not an object', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-json');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -112,15 +139,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when session_sig is not valid Base64URL', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-ss');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -136,15 +163,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when K_master_public is not valid Base64URL', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-mp');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -160,15 +187,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/revocations returns 400 when JSON body is not an object', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-rj');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -189,15 +216,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions rejects wrong-length bearer token', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-s');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -209,15 +236,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(401);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions rejects bearer value that does not match', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-s2');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -233,15 +260,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(401);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/enroll with opaque garbage yields 404', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-e');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -249,15 +276,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(404);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('GET /api/verify rejects whitespace-only cert id', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-v');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -265,15 +292,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(404);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/revocations with empty sessions returns 404', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-r');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -290,15 +317,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(404);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/revocations rejects signature not matching any tutor key', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-r2');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -325,15 +352,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(403);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 409 when course already exists', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-dup');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -354,15 +381,15 @@ describe('HTTP route coverage', function (): void {
             expect($second->getStatusCode())->toBe(409);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when session_sig does not verify', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-sig');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -379,15 +406,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/sessions returns 400 when fingerprint mismatches master key', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-fp');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -404,15 +431,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/revocations returns 400 when signature is not valid Base64URL', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-r4');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -438,15 +465,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/revocations returns 400 when document is malformed', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-r5');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -469,15 +496,15 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 
     test('POST /api/enroll returns 400 when name is missing', function (): void {
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-n');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         try {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
@@ -498,8 +525,57 @@ describe('HTTP route coverage', function (): void {
             expect($res->getStatusCode())->toBe(400);
         } finally {
             @unlink($sqlite);
-            putenv('IKWSD_SQLITE_PATH');
-            unset($_ENV['IKWSD_SQLITE_PATH']);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll embeds K_master_public and session_sig verifies from certificate JSON alone', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-verify-cert');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'a28f5b2e-4b2a-7000-9000-abcdef123456';
+            $validUntilUnix = time() + 7200;
+
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, $validUntilUnix);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $path = parse_url((string) $sessBody['enroll_url'], PHP_URL_PATH);
+            $apiEnrollPath = preg_replace('#^/enroll/#', '/api/enroll/', (string) $path, 1);
+
+            $enroll = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Route Coverage']);
+            expect($enroll->getStatusCode())->toBe(200);
+
+            /** @var array<string, mixed> $cert */
+            $cert = json_decode((string) $enroll->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+            expect($cert['K_master_public'] ?? null)->toBe($cred['K_master_public']);
+            expect(isset($cert['K_course_public'], $cert['session_sig']))->toBeTrue();
+
+            $kMasterRaw = $signer->base64UrlDecode((string) $cert['K_master_public']);
+            $kCourseRaw = $signer->base64UrlDecode((string) $cert['K_course_public']);
+            $msg = $signer->sessionEndorsementMessage($courseId, $validUntilUnix, $kCourseRaw);
+            $sig = $signer->base64UrlDecode((string) $cert['session_sig']);
+
+            expect($signer->verifyDetached($msg, $sig, $kMasterRaw))->toBeTrue();
+            /** @var array{name: non-empty-string, key_fingerprint: non-empty-string} $institute */
+            $institute = $cert['institute'];
+            expect($institute['key_fingerprint'])->toBe($signer->masterPublicFingerprintHex($kMasterRaw));
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
         }
     });
 });

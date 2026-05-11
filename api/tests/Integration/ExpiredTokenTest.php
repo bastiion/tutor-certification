@@ -10,9 +10,9 @@ use Tests\Support\SessionCredentialFixture;
 
 describe('Enrollment expiry', function (): void {
     test('returns 410 when token window has closed', function (): void {
-        $sqlite = tempnam(sys_get_temp_dir(), 'ikwsd-expired-');
-        putenv('IKWSD_SQLITE_PATH=' . $sqlite);
-        $_ENV['IKWSD_SQLITE_PATH'] = $sqlite;
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-expired-');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
 
         $apiRoot = dirname(__DIR__, 2);
         $app = SlimApplicationFactory::fromApiRoot($apiRoot);

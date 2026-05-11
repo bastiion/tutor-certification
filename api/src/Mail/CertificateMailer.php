@@ -13,7 +13,7 @@ final class CertificateMailer
         private readonly string $smtpHost,
         private readonly int $smtpPort,
         private readonly string $fromAddress,
-        private readonly string $fromName = 'IKWSD Teilnahmebescheinigungen',
+        private readonly string $fromName = 'Teilnahmebescheinigungen',
     ) {}
 
     /** @throws \PHPMailer\PHPMailer\Exception */
