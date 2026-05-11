@@ -9,10 +9,15 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+    env_file:
+      - docker/php/dev.env
     volumes:
       - ./api:/var/www/html
+      - ./packages/crypto/test-vectors:/var/www/html/packages-crypto-test-vectors:ro
       - api_vendor:/var/www/html/vendor
     environment:
+      # Bind-mounted ./api is often root-owned; use a container-writable SQLite file for local dev.
+      IKWSD_SQLITE_PATH: /tmp/api-certs.sqlite
       MAILPIT_INTEGRATION: "1"
       MAILPIT_API_BASE: http://mailpit:8025
       SMTP_HOST: mailpit
