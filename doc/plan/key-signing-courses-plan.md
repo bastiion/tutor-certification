@@ -82,7 +82,7 @@ The local client constructs a session credential and pushes it to the server:
   "course_date": "YYYY-MM-DD",
   "institute_name": "...",
   "K_course_public": "<base64url>",
-  "K_master_public_fingerprint": "<sha256 hex of K_master_public>",
+  "K_master_public_fingerprint": "<BLAKE2b-256 hex of K_master_public>",
   "session_sig": "<base64url: sign(K_master_private, course_id ∥ valid_until ∥ K_course_public)>",
   "K_course_private_enc": "<base64url: encrypt(K_course_private, server_public_key)>"
 }
@@ -107,7 +107,7 @@ The local client constructs a session credential and pushes it to the server:
   },
   "institute": {
     "name": "...",
-    "key_fingerprint": "<sha256 hex of K_master_public>"
+    "key_fingerprint": "<BLAKE2b-256 hex of K_master_public>"
   },
   "K_course_public": "<base64url>",
   "session_sig": "<base64url: sign(K_master, course_id ∥ valid_until ∥ K_course_public)>",
@@ -124,6 +124,13 @@ The certificate embeds the full chain of trust:
 - Ed25519: 32-byte keys, 64-byte signatures, deterministic, no nonce attacks, widely supported (OpenSSL, libsodium, WebCrypto, GPG Ed25519 subkeys)
 - HKDF-SHA256: standard key derivation (RFC 5869), available everywhere
 - X25519 + AES-256-GCM (or NaCl box): for the K_course_private_enc transport
+- **BLAKE2b-256 (libsodium `crypto_generichash` default output size)**:
+  used for `K_master_public_fingerprint` / `institute.key_fingerprint`
+  hex. Exposed cross-language as `masterPublicFingerprintHex` in
+  `@bastiion/crypto` and `App\Crypto\Signer::masterPublicFingerprintHex`
+  in the PHP API. **Not** SHA-256 — earlier drafts of this document
+  said SHA-256 for the fingerprint; the BLAKE2b-256 choice was adopted
+  during Stage 2 implementation and formally aligned here.
 
 ### Revocation Document
 
