@@ -46,7 +46,7 @@ Bun workspaces with three separate SPAs and one shared crypto package. The exist
 │               └── VerifyResult.tsx
 ├── packages/
 │   └── crypto/                    # shared workspace: libsodium helpers
-│       ├── package.json           # name: @ikwsd/crypto
+│       ├── package.json           # name: @bastiion/crypto
 │       └── src/index.ts           # sign, verify, hkdf, base64url utils
 ├── api/                           # PHP backend
 │   ├── public/
@@ -80,7 +80,7 @@ Bun workspaces with three separate SPAs and one shared crypto package. The exist
 
 ```json
 {
-  "name": "ikwsd-certs",
+  "name": "bastiion-certs",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev":   "bun run --filter '*' dev",
@@ -97,7 +97,7 @@ Bun workspaces with three separate SPAs and one shared crypto package. The exist
 
 ```json
 {
-  "name": "@ikwsd/crypto",
+  "name": "@bastiion/crypto",
   "module": "./src/index.ts",
   "dependencies": { "libsodium-wrappers": "*" }
 }

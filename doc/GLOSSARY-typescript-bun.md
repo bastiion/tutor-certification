@@ -57,7 +57,7 @@ A **schema** library for JS/TS: describe the shape you expect (e.g. form input) 
 
 ## `tsconfig.json`
 
-Tells the **TypeScript compiler** (and your editor) how strict to be, which syntax level to allow, and path aliases (e.g. `@ikwsd/crypto`). It does **not** replace a test runner; it’s for types and IDE support.
+Tells the **TypeScript compiler** (and your editor) how strict to be, which syntax level to allow, and path aliases (e.g. `@bastiion/crypto`). It does **not** replace a test runner; it’s for types and IDE support.
 
 ---
 
