@@ -29,6 +29,7 @@ doc/plan/stages
 result
 
 # Cypress (optional local artifacts + compiled task bundles)
+e2e/.tmp-*.json
 cypress/screenshots
 cypress/videos
 cypress/downloads
