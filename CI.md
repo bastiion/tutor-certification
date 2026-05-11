@@ -53,8 +53,9 @@ Or use **`actionlint`** from `nix develop` ([`flake.nix`](flake.nix)).
 - **Commands** (in order):
   1. `bun install --frozen-lockfile` (workspaces under `apps/*`, `packages/*`; lockfile `bun.lock` at repo root)
   2. `bun run typecheck` → `tsc --noEmit`
-  3. `bun run build` → [`build.ts`](build.ts) → `dist/{tutor,enroll,verify}/`
-  4. `bun run build:compose` → static tree under `api/public/static-spa/` + `.htaccess` via [`scripts/write-spa-htaccess.ts`](scripts/write-spa-htaccess.ts)
+  3. `bun run test` → Bun workspace tests + **`packages/crypto` 100 % line/function gate** ([`bunfig.toml`](bunfig.toml))
+  4. `bun run build` → [`build.ts`](build.ts) → `dist/{tutor,enroll,verify}/`
+  5. `bun run build:compose` → static tree under `api/public/static-spa/` + `.htaccess` via [`scripts/write-spa-htaccess.ts`](scripts/write-spa-htaccess.ts)
 - **Artifact**: **`static-spa`** — contents of `api/public/static-spa/` (used by `compose-smoke-and-e2e`).
 
 ---
@@ -172,7 +173,7 @@ nix develop -c actionlint -version
 
 | Script | What it does |
 |--------|----------------|
-| `ci:local` | `typecheck` → `build` → `build:compose` → `test:backend:coverage` → `analyse:backend` (Docker required for PHP parts; **no** Cypress unless you run it separately) |
+| `ci:local` | `typecheck` → `test` → `build` → `build:compose` → `test:backend:coverage` → `analyse:backend` (Docker required for PHP parts; **no** Cypress unless you run it separately) |
 | `ci:act:list` | `act --list` |
 | `ci:act` | `act pull_request --verbose` |
 

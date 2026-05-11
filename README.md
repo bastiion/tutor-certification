@@ -53,7 +53,7 @@ nix develop
 | [`apps/tutor`](apps/tutor) | Tutor / certificate UI (current main React app) |
 | [`apps/participant`](apps/participant) | Enrollment SPA scaffold (URL prefix `/enroll/` in dev) |
 | [`apps/verify`](apps/verify) | Verification SPA scaffold (URL prefix `/verify/` in dev) |
-| [`packages/crypto`](packages/crypto) | Shared `@ikwsd/crypto` workspace package (placeholder until real browser crypto lands here) |
+| [`packages/crypto`](packages/crypto) | Shared `@ikwsd/crypto` workspace package (Stage 1: libsodium + WebCrypto HKDF, see [`doc/implementation/`](doc/implementation/)) |
 | [`server.ts`](server.ts) | Bun dev server: routes `/tutor/`, `/enroll/`, `/verify/` |
 | `api/public/static-spa/` | Pre-built SPAs for Docker/nginx (from `bun run build:compose`, gitignored) |
 | [`api/`](api/) | Composer project: bootstrap PHP code, Pest tests, PHPStan, `public/index.php` |
