@@ -1,5 +1,5 @@
 import { defineConfig } from "cypress";
-import { mintSessionCredential, signRevocationDocument } from "./e2e/support/tasks/apiCryptoTasks.ts";
+import { mintSessionCredential, signRevocationDocument } from "./e2e/support/tasks/apiCryptoTasks";
 
 const baseUrl =
   process.env.CYPRESS_BASE_URL && process.env.CYPRESS_BASE_URL.trim() !== ""
