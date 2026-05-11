@@ -29,6 +29,7 @@ const server = serve({
   },
 
   development: process.env.NODE_ENV !== "production" && {
+    // Forwards browser console.* to the Bun terminal (avoid NODE_ENV=production for dev).
     hmr: true,
     console: true,
   },

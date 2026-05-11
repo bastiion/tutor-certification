@@ -55,6 +55,7 @@ nix develop
 | [`apps/verify`](apps/verify) | Verification SPA scaffold (URL prefix `/verify/` in dev) |
 | [`packages/crypto`](packages/crypto) | Shared `@ikwsd/crypto` workspace package (placeholder until real browser crypto lands here) |
 | [`server.ts`](server.ts) | Bun dev server: routes `/tutor/`, `/enroll/`, `/verify/` |
+| `api/public/static-spa/` | Pre-built SPAs for Docker/nginx (from `bun run build:compose`, gitignored) |
 | [`api/`](api/) | Composer project: bootstrap PHP code, Pest tests, PHPStan, `public/index.php` |
 | [`docker/`](docker/) | Custom PHP image, nginx virtual host |
 | [`e2e/`](e2e/) | Cypress specs |
@@ -73,7 +74,9 @@ nix develop -c bun dev
 ```
 
 - Dev server default: http://localhost:3000 (`PORT` overrides the port). **`/` redirects to `/tutor/`**. Apps: **`/tutor/`** (tutor), **`/enroll/`** (participant scaffold), **`/verify/`** (verify scaffold).
-- Production build: `nix develop -c bun run build` (runs [`build.ts`](build.ts) → `dist/tutor/`, `dist/enroll/`, `dist/verify/`).
+- **Browser logs in the terminal (dev):** [`server.ts`](server.ts) enables `development.console` when `NODE_ENV` is not `production`. Run plain **`bun dev`** so client `console.*` is forwarded to the Bun terminal (avoid `NODE_ENV=production` for local UI work).
+- **Production-style bundles (repo root):** `nix develop -c bun run build` → [`build.ts`](build.ts) writes **`dist/tutor/`**, **`dist/enroll/`**, **`dist/verify/`** (same as before).
+- **Compose / PHP+nginx staging tree:** **`bun run build:compose`** builds into **`api/public/static-spa/`** (gitignored), adds **`.htaccess`** per app for Apache-style hosts, and matches the path prefixes nginx uses.
 - Typecheck: `nix develop -c bun run typecheck`.
 
 ---
@@ -91,9 +94,10 @@ nix develop -c bun run composer:backend   # first time or after lockfile changes
 | Service | URL / port |
 |---------|-------------|
 | App via nginx | http://localhost:7123/ (front controller → `api/public/index.php`) |
-| Developer hub | http://localhost:7123/dev/ (shortcuts API, Mailpit, frontend, coverage URL) |
+| Developer hub | http://localhost:7123/dev/ (shortcuts API, Mailpit, built SPAs, coverage) |
 | HTML coverage report (generate first) | http://localhost:7123/coverage/ |
-| PHP `phpinfo()` | http://localhost:7123/info.php |
+| Local dev info + links | http://localhost:7123/info.php (static SPAs, Bun dev URLs; `?phpinfo=1` for full `phpinfo()`) |
+| Static SPAs (after `bun run build:compose`) | http://localhost:7123/tutor/, http://localhost:7123/enroll/, http://localhost:7123/verify/ |
 | Mailpit UI | http://localhost:8025 |
 | SMTP (Mailpit) | Host `localhost` port `1025` from the host; hostname `mailpit` from containers |
 
@@ -124,14 +128,30 @@ Coverage artifacts (when generated): [`api/coverage/html`](api/coverage) and `ap
 
 ### End-to-end tests (Cypress)
 
-Cypress uses [`cypress.config.cjs`](cypress.config.cjs) with **`baseUrl`**: `http://localhost:3000`. The tutor form smoke test visits **`/tutor/`**. On **NixOS**, always run Cypress from the dev shell so the Nix Electron binary is used (see [.cursor/rules/cypress-test-runner.mdc](.cursor/rules/cypress-test-runner.mdc)):
+[`cypress.config.cjs`](cypress.config.cjs) sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, default **`http://localhost:3000`**. Specs use path-only URLs (e.g. **`/tutor/`**) so the same tests run against **Bun dev** or **Docker nginx + static build**.
+
+| Target | When | Command (examples) |
+|--------|------|---------------------|
+| Hot reload (Bun) | `bun dev` on port 3000 | `nix develop -c bun run cypress` |
+| Staging-like (Compose) | `bun run build:compose` + `docker compose up`, nginx on 7123 | `nix develop -c bun run cypress:compose` |
+
+Optional: `CYPRESS_BASE_URL=http://127.0.0.1:7123 cypress run` for any host/port.
+
+Browser **`console.log` / `warn` / `error`** during tests is echoed to the terminal via [`e2e/support/e2e.ts`](e2e/support/e2e.ts) with a **`[browser:…]`** prefix.
+
+On **NixOS**, always run Cypress from the dev shell so the Nix Electron binary is used (see [.cursor/rules/cypress-test-runner.mdc](.cursor/rules/cypress-test-runner.mdc)):
 
 ```bash
-nix develop -c bun dev                 # terminal 1
-nix develop -c bun run cypress         # terminal 2, headless
+# Against Bun dev (terminal 1: bun dev)
+nix develop -c bun run cypress
+nix develop -c bun run cypress:open
 
-nix develop -c bun run cypress:open    # interactive UI
+# Against nginx + static SPAs (terminal 1: docker compose up; run build:compose first)
+nix develop -c bun run cypress:compose
+nix develop -c bun run cypress:compose:open
 ```
+
+**CI:** build assets, start the stack, set **`CYPRESS_BASE_URL`** to the nginx URL the job can reach, then run **`cypress run`**.
 
 ---
 
@@ -139,7 +159,8 @@ nix develop -c bun run cypress:open    # interactive UI
 
 | Area | Variables |
 |------|-----------|
-| Frontend dev server | `PORT` (defaults to `3000`) |
+| Frontend dev server | `PORT` (defaults to `3000`); avoid `NODE_ENV=production` if you want Bun to forward browser console to the terminal |
+| Cypress | `CYPRESS_BASE_URL` (overrides default `http://localhost:3000`) |
 | PHP / Pest (Docker) | `MAILPIT_INTEGRATION`, `MAILPIT_API_BASE`, `SMTP_HOST`, `SMTP_PORT` (set in Compose for `php`) |
 | Secrets | Prefer untracked `.env` files; see [.gitignore](.gitignore) |
 
@@ -154,7 +175,7 @@ nix develop -c bun run test:backend:coverage
 nix develop -c bun run analyse:backend
 ```
 
-Frontend: `bun run typecheck`, `bun run build`; Cypress when tutor UI paths change.
+Frontend: `bun run typecheck`, `bun run build` or `bun run build:compose`; Cypress against dev (`cypress`) or Compose (`cypress:compose`) when UI paths change.
 
 ---
 
@@ -163,5 +184,6 @@ Frontend: `bun run typecheck`, `bun run build`; Cypress when tutor UI paths chan
 - [Concept — participation certificates & cryptography](doc/plan/key-signing-courses-plan.md)
 - [Monorepo / SPA / PHP implementation plan](doc/plan/key-signing-courses-plan-implementation.md)
 - [Bootstrap log — PHP tooling & Mailpit](doc/implementation/2026-05-11-php-backend-bootstrap.md)
-- [UI workspaces layout (this slice)](doc/implementation/2026-05-11-ui-workspaces-layout.md)
+- [UI workspaces layout](doc/implementation/2026-05-11-ui-workspaces-layout.md)
+- [Compose static SPAs + dual Cypress](doc/implementation/2026-05-11-compose-static-spa-and-e2e.md)
 - Frontend conventions: [`CLAUDE.md`](CLAUDE.md) (Bun-first tooling)

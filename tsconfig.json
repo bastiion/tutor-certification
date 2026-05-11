@@ -35,6 +35,6 @@
     "noPropertyAccessFromIndexSignature": false
   },
 
-  "include": ["server.ts", "build.ts", "bun-env.d.ts", "apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"],
+  "include": ["server.ts", "build.ts", "bun-env.d.ts", "scripts/**/*.ts", "apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts"],
   "exclude": ["node_modules", "dist", "api", "e2e"]
 }

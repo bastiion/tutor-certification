@@ -7,8 +7,8 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["cypress", "bun-types"],
+    "types": ["cypress"],
     "isolatedModules": true
   },
-  "include": ["./**/*.cy.ts"]
+  "include": ["./**/*.cy.ts", "./support/**/*.ts"]
 }

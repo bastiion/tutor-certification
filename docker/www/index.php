@@ -33,7 +33,14 @@
         <li><a href="http://localhost:7123/">API bootstrap JSON</a></li>
         <li><a href="http://localhost:7123/dev/">Developer hub</a> (coverage + shortcuts)</li>
         <li><a href="http://localhost:7123/coverage/">HTML test coverage report</a> — after <code>bun run test:backend:coverage</code></li>
-        <li><a href="http://localhost:7123/info.php"><code>phpinfo()</code></a></li>
+        <li><a href="http://localhost:7123/info.php">Local dev info / navigation</a> (<code>phpinfo</code>: add <code>?phpinfo=1</code>)</li>
+    </ul>
+
+    <h2>Static SPAs on Compose (after <code>bun run build:compose</code>)</h2>
+    <ul>
+        <li><a href="http://localhost:7123/tutor/">Tutor</a></li>
+        <li><a href="http://localhost:7123/enroll/">Participant</a></li>
+        <li><a href="http://localhost:7123/verify/">Verify</a></li>
     </ul>
 
     <h2>This folder only</h2>

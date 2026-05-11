@@ -1,10 +1,15 @@
 const { defineConfig } = require("cypress");
 
+const baseUrl =
+  process.env.CYPRESS_BASE_URL && process.env.CYPRESS_BASE_URL.trim() !== ""
+    ? process.env.CYPRESS_BASE_URL
+    : "http://localhost:3000";
+
 module.exports = defineConfig({
   e2e: {
-    baseUrl: "http://localhost:3000",
+    baseUrl,
     specPattern: "e2e/**/*.cy.ts",
-    supportFile: false,
+    supportFile: "e2e/support/e2e.ts",
     video: false,
   },
 });

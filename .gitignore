@@ -46,6 +46,7 @@ cypress/downloads
 # PHP API (Composer, generated reports, tooling caches — keep composer.lock tracked)
 api/vendor
 api/coverage
+api/public/static-spa
 
 # PHPUnit 10+/Pest caches (often under api/ but match anywhere)
 .phpunit.cache
