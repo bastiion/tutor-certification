@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { cryptoPackageStatus, ready, type PackageStatus } from "@ikwsd/crypto";
+import { cryptoPackageStatus, ready, type PackageStatus } from "@bastiion/crypto";
 import "./index.css";
 
 export function App() {
@@ -9,8 +9,8 @@ export function App() {
   }, []);
 
   const cryptoLine = status
-    ? `@ikwsd/crypto: ready (sodium ${status.sodiumVersion})`
-    : "@ikwsd/crypto: initialising…";
+    ? `@bastiion/crypto: ready (sodium ${status.sodiumVersion})`
+    : "@bastiion/crypto: initialising…";
 
   return (
     <main className="mx-auto max-w-xl p-8">

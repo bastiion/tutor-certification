@@ -7,7 +7,7 @@ describe("Teilnahmebescheinigungen form", () => {
     cy.contains("label", "Name der Einrichtung")
       .find("input")
       .clear()
-      .type("IKWSD Test");
+      .type("Example Institute");
     cy.contains("label", "Beschreibung / Fließtext")
       .find("textarea")
       .clear()

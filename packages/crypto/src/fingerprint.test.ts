@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import sodium from "libsodium-wrappers";
 import { masterPublicFingerprintHex } from "./fingerprint.ts";
-import { ready, __unsafeResetIkwsdCryptoPackageStateForTesting } from "./index.ts";
+import { ready, __unsafeResetBastiionCryptoPackageStateForTesting } from "./index.ts";
 
 describe("masterPublicFingerprintHex", () => {
   test("matches libsodium.crypto_generichash(32, pk) hex", async () => {
@@ -15,17 +15,17 @@ describe("masterPublicFingerprintHex", () => {
 
     expect(masterPublicFingerprintHex(pk)).toBe(expected);
 
-    __unsafeResetIkwsdCryptoPackageStateForTesting();
+    __unsafeResetBastiionCryptoPackageStateForTesting();
   });
 
   test("wrong length throws", async () => {
     await ready();
     expect(() => masterPublicFingerprintHex(new Uint8Array(31))).toThrow(RangeError);
-    __unsafeResetIkwsdCryptoPackageStateForTesting();
+    __unsafeResetBastiionCryptoPackageStateForTesting();
   });
 
   test("requires ready()", () => {
-    __unsafeResetIkwsdCryptoPackageStateForTesting();
+    __unsafeResetBastiionCryptoPackageStateForTesting();
     expect(() => masterPublicFingerprintHex(new Uint8Array(32))).toThrow(/await ready/i);
   });
 });

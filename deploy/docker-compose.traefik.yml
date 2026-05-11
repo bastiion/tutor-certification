@@ -6,7 +6,7 @@
 #   docker compose -f docker-compose.traefik.yml --env-file .env up -d
 
 services:
-  ikwsd-certs:
+  bastiion-certs:
     image: ${REGISTRY_IMAGE:?set REGISTRY_IMAGE}:${IMAGE_TAG:?set IMAGE_TAG}
     restart: unless-stopped
     networks:
@@ -14,10 +14,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK_NAME:?set TRAEFIK_NETWORK_NAME}
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-ikwsd-certs}.rule=Host(`${DOMAIN:?set DOMAIN}`)
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-ikwsd-certs}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
-      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-ikwsd-certs}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
-      - traefik.http.services.${TRAEFIK_ROUTER_NAME:-ikwsd-certs}.loadbalancer.server.port=8080
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-bastiion-certs}.rule=Host(`${DOMAIN:?set DOMAIN}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-bastiion-certs}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-bastiion-certs}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${TRAEFIK_ROUTER_NAME:-bastiion-certs}.loadbalancer.server.port=8080
 
 networks:
   traefik:

@@ -23,10 +23,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@ikwsd/crypto": ["./packages/crypto/src/index.ts"],
-      "@ikwsd/tutor/*": ["./apps/tutor/*"],
-      "@ikwsd/participant/*": ["./apps/participant/*"],
-      "@ikwsd/verify/*": ["./apps/verify/*"]
+      "@bastiion/crypto": ["./packages/crypto/src/index.ts"],
+      "@bastiion/tutor/*": ["./apps/tutor/*"],
+      "@bastiion/participant/*": ["./apps/participant/*"],
+      "@bastiion/verify/*": ["./apps/verify/*"]
     },
 
     // Some stricter flags (disabled by default)

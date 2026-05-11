@@ -13,7 +13,7 @@ import { isSodiumInitialised } from "./sodium-gate.ts";
 /** @internal */
 export function ensureSodiumForBase64(): void {
   if (!isSodiumInitialised) {
-    throw new Error("@ikwsd/crypto: await ready() before using base64url helpers");
+    throw new Error("@bastiion/crypto: await ready() before using base64url helpers");
   }
 }
 
@@ -23,10 +23,10 @@ function validateUrlSafeNoPaddingAlphabet(input: string): void {
   for (let i = 0; i < input.length; i++) {
     const c = input[i]!;
     if (c === "+" || c === "/") {
-      throw new SyntaxError("@ikwsd/crypto: expected URL-safe alphabet (reject + and /)");
+      throw new SyntaxError("@bastiion/crypto: expected URL-safe alphabet (reject + and /)");
     }
     if (c === "=") {
-      throw new SyntaxError("@ikwsd/crypto: padding is not permitted (URL-safe unpadded)");
+      throw new SyntaxError("@bastiion/crypto: padding is not permitted (URL-safe unpadded)");
     }
   }
 }

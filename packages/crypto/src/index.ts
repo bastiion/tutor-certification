@@ -1,5 +1,5 @@
 /**
- * @ikwsd/crypto — shared primitives for Ed25519 signatures, HKDF session derivation, NaCl sealed
+ * @bastiion/crypto — shared primitives for Ed25519 signatures, HKDF session derivation, NaCl sealed
  * boxes, and Base64URL helpers used by the tutor, participant, and verify SPAs.
  *
  * Call {@link ready} once early in app startup before any other export.
@@ -78,7 +78,7 @@ export function cryptoPackageStatus(): PackageStatus {
  * Not part of the supported public runtime API.
  */
 
-export function __unsafeResetIkwsdCryptoPackageStateForTesting(): void {
+export function __unsafeResetBastiionCryptoPackageStateForTesting(): void {
   readyPromise = null;
   sodiumVersionCache = "";
   setSodiumInitialised(false);

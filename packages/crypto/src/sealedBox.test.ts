@@ -9,7 +9,7 @@ import { boxSeal, boxSealOpen } from "./sealedBox.ts";
 import {
   base64urlDecode,
   cryptoPackageStatus,
-  __unsafeResetIkwsdCryptoPackageStateForTesting,
+  __unsafeResetBastiionCryptoPackageStateForTesting,
   ready,
 } from "./index.ts";
 
@@ -63,7 +63,7 @@ describe("boxSeal", () => {
 
   describe("post-suite cold-start regression", () => {
     it("rejects base64/helpers until libsodium is initialised again", async () => {
-      __unsafeResetIkwsdCryptoPackageStateForTesting();
+      __unsafeResetBastiionCryptoPackageStateForTesting();
       expect(cryptoPackageStatus().sodiumVersion).toBe("");
       expect(() => assertSodiumReady()).toThrow(/ready/);
       expect(() => base64urlDecode("Zg")).toThrow(/await ready/);

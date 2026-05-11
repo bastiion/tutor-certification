@@ -4,7 +4,7 @@ import { describe, expect, it } from "bun:test";
 
 import { cryptoPackageStatus, ready } from "./index.ts";
 
-describe("@ikwsd/crypto package status", () => {
+describe("@bastiion/crypto package status", () => {
   it("never throws synchronously before or after libsodium bootstrap", async () => {
     expect(() => cryptoPackageStatus()).not.toThrow();
     await ready();

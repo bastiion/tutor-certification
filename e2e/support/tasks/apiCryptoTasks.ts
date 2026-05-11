@@ -13,7 +13,7 @@ import {
   sessionEndorsementMessage,
   signDetached,
   base64urlDecode,
-} from "@ikwsd/crypto";
+} from "@bastiion/crypto";
 
 export interface MintSessionCredentialOpts {
   courseId?: string;
@@ -106,7 +106,7 @@ export async function mintSessionCredential(
     valid_until: validUntilUnix,
     course_title: "E2E Kurs",
     course_date: "2026-05-11",
-    institute_name: "IKWSD Test",
+    institute_name: "Example Institute",
     K_master_public: base64urlEncode(masterPk),
     K_course_public: base64urlEncode(courseKp.publicKey),
     K_master_public_fingerprint: masterPublicFingerprintHex(masterPk),

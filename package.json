@@ -1,5 +1,5 @@
 {
-  "name": "ikwsd-certs",
+  "name": "bastiion-certs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -45,7 +45,7 @@
     "ci:act": "act pull_request --verbose"
   },
   "devDependencies": {
-    "@ikwsd/crypto": "workspace:*",
+    "@bastiion/crypto": "workspace:*",
     "libsodium-wrappers": "0.7.13",
     "@types/node": "^22",
     "@types/bun": "catalog:",
