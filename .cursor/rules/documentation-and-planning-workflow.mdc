@@ -1,0 +1,22 @@
+---
+description: Align work with doc/plan, log milestones in doc/implementation, distinguish planning sessions from ephemeral plan mode.
+alwaysApply: true
+---
+
+# Documentation and planning workflow
+
+## Canonical plan (`doc/plan/`)
+
+- At the start of substantial work or a new slice of the project, scan `doc/plan/` and treat it as the **authoritative roadmap** unless the user says otherwise.
+- Implement and sequence work to fit that plan. If something conflicts with reality, prefer asking the user or noting the gap in `doc/implementation/` rather than rewriting the plan on your own.
+
+## When to edit `doc/plan/` (rare)
+
+- **Do not** rename, reorder, rewrite, add, or remove files under `doc/plan/` unless the user has **explicitly** started or designated a **planning session** for updating the roadmap.
+- Ordinary Cursor **Plan mode** output is **ephemeral tactical planning** for immediate execution: use it inline in the conversation and/or short-lived edits outside `doc/plan/` as needed — **never** substitute that for updating canonical plan docs without an explicit planning session.
+
+## Implementation log (`doc/implementation/`)
+
+- When a **larger coherent part** is **delivered and fulfilled** (e.g. milestone, vertical slice, major feature/fix with clear acceptance criteria met), add or update markdown under **`doc/implementation/`** so the repo records what shipped.
+- Typical entry: brief title; date or session note; scope delivered; pointers to affected areas/commits if useful; intentional deviations from `doc/plan/` and rationale (resolution still belongs in a planning session if the plan itself must change).
+- Create **`doc/implementation/`** when it does not exist. Prefer dated or topic-named files (`YYYY-MM-topic.md` or `topic-slug.md`) and avoid overwriting prior entries unless consolidating by request.

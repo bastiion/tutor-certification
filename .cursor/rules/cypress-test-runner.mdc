@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+always run cypress tests in a nix develop -c shell because of static linking on nixos!
