@@ -114,7 +114,7 @@ On **NixOS**, run Cypress from **`nix develop`** (see [.cursor/rules/cypress-tes
   1. `bun install --frozen-lockfile` + **`bun audit`** (fails the job if Bun reports vulnerable deps).
   2. `docker compose build php`
   3. `composer install` + **`composer audit`** in the `php` container (fails on known advisories for locked deps).
-  4. **Trivy** filesystem scan ([`aquasecurity/trivy-action@0.28.0`](https://github.com/aquasecurity/trivy-action)): `scan-type: fs`, skips heavy dirs, **`exit-code: "0"`** so findings are visible but do **not** fail CI (informational layer).
+  4. **Trivy** filesystem scan ([`aquasecurity/trivy-action@v0.36.0`](https://github.com/aquasecurity/trivy-action) (`v`-prefixed tags; older numeric-only tags were removed after Aqua’s 2025 tag migration)): `scan-type: fs`, skips heavy dirs, **`exit-code: "0"`** so findings are visible but do **not** fail CI (informational layer).
 
 ---
 
