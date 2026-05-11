@@ -1,0 +1,315 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "IKWSD Teilnahmebescheinigungen API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/revocations": {
+            "post": {
+                "tags": [
+                    "tutor"
+                ],
+                "summary": "Store a tutor-signed revocation document",
+                "operationId": "0da27b5ffa3f54961e6c21b386535830",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RevocationDocument"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Recorded"
+                    },
+                    "400": {
+                        "description": "Malformed body"
+                    },
+                    "403": {
+                        "description": "Signature invalid"
+                    },
+                    "409": {
+                        "description": "Already revoked"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/sessions": {
+            "post": {
+                "tags": [
+                    "tutor"
+                ],
+                "summary": "Register tutor session credential",
+                "operationId": "8a2046bf3e6672d21a85bc01c2c1342c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SessionCredential"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Session created"
+                    },
+                    "400": {
+                        "description": "Malformed credential"
+                    },
+                    "409": {
+                        "description": "Session exists"
+                    },
+                    "401": {
+                        "description": "Invalid bearer token"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/enroll/{token}": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Self-issue participation certificate via enrollment token",
+                "operationId": "d506e995f9197fd299dc6a7c87f7d10f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Certificate issued",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Certificate"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid tampered token"
+                    },
+                    "410": {
+                        "description": "Expired token"
+                    },
+                    "429": {
+                        "description": "Rate limited (reserved)"
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Liveness/readiness probe",
+                "operationId": "06e7b98743efe8f04d21ff74b375de69",
+                "responses": {
+                    "200": {
+                        "description": "Healthy"
+                    }
+                }
+            }
+        },
+        "/api/openapi.json": {
+            "get": {
+                "tags": [
+                    "meta"
+                ],
+                "summary": "OpenAPI specification (generated, committed artefact)",
+                "operationId": "31f2683e0896f5cdf9031889f734b6f6",
+                "responses": {
+                    "200": {
+                        "description": "OpenAPI document"
+                    },
+                    "503": {
+                        "description": "Spec missing on disk"
+                    }
+                }
+            }
+        },
+        "/api/verify/{certId}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Online revocation probe for a certificate id",
+                "operationId": "bee1905a088b7e30a6cf1cd6ac27ebdc",
+                "responses": {
+                    "200": {
+                        "description": "Valid or revoked document"
+                    },
+                    "404": {
+                        "description": "Malformed cert identifier"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Certificate": {
+                "required": [
+                    "cert_id",
+                    "version",
+                    "issued_at",
+                    "course",
+                    "participant",
+                    "institute",
+                    "K_course_public",
+                    "session_sig",
+                    "certificate_sig"
+                ],
+                "properties": {
+                    "certId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "issuedAt": {
+                        "type": "string",
+                        "example": "2026-05-11T14:28:00+00:00"
+                    },
+                    "course": {
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "participant": {
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "institute": {
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "kCoursePublicBase64Url": {
+                        "description": "Ed25519 public (Base64URL)",
+                        "type": "string"
+                    },
+                    "sessionSigBase64Url": {
+                        "description": "Detached endorsement signature (Base64URL)",
+                        "type": "string"
+                    },
+                    "certificateSigBase64Url": {
+                        "description": "Detached certificate signature (Base64URL)",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "RevocationDocument": {
+                "required": [
+                    "cert_id",
+                    "revoked_at",
+                    "reason",
+                    "signature"
+                ],
+                "properties": {
+                    "certId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "signatureBase64Url": {
+                        "description": "Detached Ed25519 revocation signature (Base64URL), message = cert_id ‖ revoked_at UTF-8",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SessionCredential": {
+                "required": [
+                    "course_id",
+                    "valid_until",
+                    "course_title",
+                    "course_date",
+                    "institute_name",
+                    "K_master_public",
+                    "K_course_public",
+                    "K_master_public_fingerprint",
+                    "session_sig",
+                    "K_course_private_enc"
+                ],
+                "properties": {
+                    "courseId": {
+                        "type": "string",
+                        "example": "018f5b2e-4b2a-7000-9000-abcdef123456"
+                    },
+                    "kMasterPublicBase64Url": {
+                        "description": "Ed25519 K_master_public, Base64URL no padding",
+                        "type": "string"
+                    },
+                    "kCoursePublicBase64Url": {
+                        "description": "Ed25519 K_course_public, Base64URL no padding",
+                        "type": "string"
+                    },
+                    "kMasterPublicFingerprintHex": {
+                        "description": "SHA-256 hex (lowercase) of K_master_public raw bytes",
+                        "type": "string"
+                    },
+                    "sessionSigBase64Url": {
+                        "description": "Detached Ed25519 signature (Base64URL)",
+                        "type": "string"
+                    },
+                    "kCoursePrivateEncBase64Url": {
+                        "description": "NaCl sealed box ciphertext (Base64URL)",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "bearerFormat": "opaque token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "tutor",
+            "description": "tutor"
+        },
+        {
+            "name": "public",
+            "description": "public"
+        },
+        {
+            "name": "meta",
+            "description": "meta"
+        }
+    ]
+}

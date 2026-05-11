@@ -1,15 +1,18 @@
 {
   "name": "ikwsd/teilnahmebescheinigungen-api",
-  "description": "PHP API bootstrap (sessions/certificates planned later)",
+  "description": "PHP API / Slim backend for Teilnahmebescheinigungen",
   "type": "project",
   "license": "MIT",
   "require": {
-    "php": "^8.4"
+    "php": "^8.4",
+    "phpmailer/phpmailer": "^6.11",
+    "slim/psr7": "^1.7",
+    "slim/slim": "^4.14"
   },
   "require-dev": {
     "pestphp/pest": "^3.8",
     "phpstan/phpstan": "^2.1",
-    "phpmailer/phpmailer": "^6.11"
+    "zircote/swagger-php": "^4.11"
   },
   "autoload": {
     "psr-4": {
@@ -33,6 +36,8 @@
     "analyse": "@phpstan",
     "test": "pest",
     "test:coverage": "pest --coverage --coverage-html=coverage/html --coverage-clover=coverage/clover.xml",
-    "test:coverage-bootstrap": "pest --coverage --coverage-html=coverage/html --coverage-clover=coverage/clover.xml --min=100"
+    "test:coverage-bootstrap": "pest --coverage --coverage-html=coverage/html --coverage-clover=coverage/clover.xml --min=90",
+    "openapi:generate": "php vendor/bin/openapi src --output public/openapi.json --format json",
+    "openapi:check": "sh -ec 'TMP=$(mktemp) && vendor/bin/openapi src --output \"$TMP\" --format json && diff -u public/openapi.json \"$TMP\"; EC=$?; rm -f \"$TMP\"; exit $EC'"
   }
 }

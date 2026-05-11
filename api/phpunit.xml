@@ -4,6 +4,16 @@
          colors="true"
          cacheDirectory=".phpunit.cache"
          bootstrap="vendor/autoload.php">
+  <php>
+    <env name="SERVER_BOX_KEYPAIR_BASE64" value="VwF3nZYCiwSLPd4McmJnuL-AcvVTmTkCUigrt_smwfkAY5pYm8Pzh6IFKbqAGRyaNOb7rrE-r4mgbZsz7pzuSg"/>
+    <env name="TOKEN_HMAC_KEY_BASE64" value="tjJGAH7zBwPU8jimGYL7S-EP9ssVlhuXNUehaxy6ZJk"/>
+    <env name="TUTOR_API_TOKEN" value="d471ffdacb4a62518e006e535878a8669d9134aa03c7ada6378e79a538f13ce2"/>
+    <env name="TUTOR_EMAIL" value="tutor@example.test"/>
+    <env name="PUBLIC_BASE_URL" value="http://localhost:7123"/>
+    <env name="SMTP_HOST" value="mailpit"/>
+    <env name="SMTP_PORT" value="1025"/>
+    <env name="MAIL_FROM_ADDRESS" value="noreply@example.test"/>
+  </php>
   <testsuites>
     <testsuite name="default">
       <directory suffix=".php">tests</directory>

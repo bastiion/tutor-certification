@@ -1,0 +1,17 @@
+# Sample Apache front-controller + tutor-route protection (production shared hosting).
+# Docker Compose uses nginx only — this file documents Apache deployments.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Protect tutor-only JSON endpoints with Basic Auth (replace path to htpasswd).
+# <If "%{REQUEST_URI} =~ m#^/(api/sessions|api/revocations)#">
+#     AuthType Basic
+#     AuthName "Tutor API"
+#     AuthUserFile /var/www/html/.htpasswd
+#     Require valid-user
+# </If>
