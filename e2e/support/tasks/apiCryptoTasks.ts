@@ -18,6 +18,11 @@ import {
 export interface MintSessionCredentialOpts {
   courseId?: string;
   validUntilUnix?: number;
+  /**
+   * Convenience: `validUntilUnix = floor(now/1000) + offset`.
+   * Ignored when `validUntilUnix` is provided explicitly.
+   */
+  validUntilOffsetSeconds?: number;
 }
 
 export interface MintSessionCredentialResult {
@@ -78,10 +83,14 @@ export async function mintSessionCredential(
       ? opts.courseId.trim()
       : crypto.randomUUID();
 
-  const validUntilUnix =
-    typeof opts.validUntilUnix === "number" && Number.isFinite(opts.validUntilUnix)
-      ? Math.floor(opts.validUntilUnix)
-      : Math.floor(Date.now() / 1000) + 86400 * 30;
+  let validUntilUnix: number;
+  if (typeof opts.validUntilUnix === "number" && Number.isFinite(opts.validUntilUnix)) {
+    validUntilUnix = Math.floor(opts.validUntilUnix);
+  } else if (typeof opts.validUntilOffsetSeconds === "number" && Number.isFinite(opts.validUntilOffsetSeconds)) {
+    validUntilUnix = Math.floor(Date.now() / 1000) + Math.floor(opts.validUntilOffsetSeconds);
+  } else {
+    validUntilUnix = Math.floor(Date.now() / 1000) + 86400 * 30;
+  }
 
   const masterSeed = sodium.randombytes_buf(32);
   const masterKp = sodium.crypto_sign_seed_keypair(masterSeed);

@@ -46,6 +46,7 @@ describe('Certificate', function (): void {
             kMasterPublicBase64Url: $kp,
             kCoursePublicBase64Url: sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
             sessionSigBase64Url: sodium_bin2base64(random_bytes(SODIUM_CRYPTO_SIGN_BYTES), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            sessionValidUntilUnix: 2_000_000_000,
             certificateSigBase64Url: '',
         );
 
@@ -81,6 +82,7 @@ describe('Certificate', function (): void {
             kMasterPublicBase64Url: $km,
             kCoursePublicBase64Url: $kc,
             sessionSigBase64Url: $ss,
+            sessionValidUntilUnix: 2_000_000_001,
             certificateSigBase64Url: $cs,
         );
 
@@ -100,8 +102,10 @@ describe('Certificate', function (): void {
             'K_master_public',
             'K_course_public',
             'session_sig',
+            'valid_until',
             'certificate_sig',
         ]);
+        expect($blob['valid_until'] ?? null)->toBe(2_000_000_001);
         expect(array_key_last($blob))->toBe('certificate_sig');
 
         expect($c->withCertificateSig($cs))->toBeInstanceOf(Certificate::class);
@@ -122,6 +126,7 @@ describe('Certificate', function (): void {
             kMasterPublicBase64Url: $km,
             kCoursePublicBase64Url: $kc,
             sessionSigBase64Url: $ss,
+            sessionValidUntilUnix: 2_000_000_002,
             certificateSigBase64Url: '',
         );
 

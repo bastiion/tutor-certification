@@ -14,6 +14,7 @@ export default defineConfig({
     video: false,
     env: {
       TUTOR_API_TOKEN: process.env.TUTOR_API_TOKEN ?? "",
+      TUTOR_EMAIL: process.env.TUTOR_EMAIL ?? "tutor@example.test",
     },
     setupNodeEvents(on) {
       on("task", {

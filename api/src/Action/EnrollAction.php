@@ -151,6 +151,7 @@ final readonly class EnrollAction
             kMasterPublicBase64Url: $sessionRow->kMasterPublicBase64Url,
             kCoursePublicBase64Url: $sessionRow->kCoursePublicBase64Url,
             sessionSigBase64Url: $sessionRow->sessionSigBase64Url,
+            sessionValidUntilUnix: $sessionRow->validUntilUnix,
             certificateSigBase64Url: '',
         );
 

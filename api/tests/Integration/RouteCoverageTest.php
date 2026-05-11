@@ -578,6 +578,7 @@ describe('HTTP route coverage', function (): void {
 
             expect($cert['K_master_public'] ?? null)->toBe($cred['K_master_public']);
             expect(isset($cert['K_course_public'], $cert['session_sig']))->toBeTrue();
+            expect($cert['valid_until'] ?? null)->toBe($validUntilUnix);
 
             $kMasterRaw = $signer->base64UrlDecode((string) $cert['K_master_public']);
             $kCourseRaw = $signer->base64UrlDecode((string) $cert['K_course_public']);

@@ -10,8 +10,13 @@
   "dependencies": {
     "@bastiion/crypto": "workspace:*",
     "bun-plugin-tailwind": "catalog:",
+    "qrcode": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tailwindcss": "catalog:"
+    "tailwindcss": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/qrcode": "catalog:"
   }
 }
