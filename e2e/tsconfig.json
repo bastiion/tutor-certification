@@ -1,9 +1,14 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["cypress", "bun-types"],
+    "target": "ESNext",
     "lib": ["ESNext", "DOM"],
-    "noEmit": true
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["cypress", "bun-types"],
+    "isolatedModules": true
   },
   "include": ["./**/*.cy.ts"]
 }
