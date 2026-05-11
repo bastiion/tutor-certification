@@ -196,7 +196,7 @@ Traefik-oriented compose and GHCR authentication for private packages: **[`deplo
 
 ## CI and local rehearsal
 
-Long-form reference (jobs, artifacts, Dependabot, CodeQL, `act`): **[CI.md](CI.md)**.
+Long-form reference (jobs, artifacts, Dependabot, `act`): **[CI.md](CI.md)**.
 
 **On GitHub**: workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main` and on pull requests:
 
@@ -207,7 +207,7 @@ Long-form reference (jobs, artifacts, Dependabot, CodeQL, `act`): **[CI.md](CI.m
 - **security** — `bun audit`, **`composer audit`**, optional Trivy fs scan (non-blocking exit code)
 - **ci-summary** — job table into the Actions step summary + fails the workflow if any job did not succeed
 
-Static analysis deep scan for JS/TS: [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml).
+GitHub **CodeQL** / code scanning is intentionally disabled (no workflow); you can add **`codeql.yml`** and turn on code scanning in repo settings after the repository is public.
 
 Dependabot updates: [`.github/dependabot.yml`](.github/dependabot.yml).
 
@@ -226,7 +226,7 @@ nix develop -c bun run ci:act:list
 nix develop -c bun run ci:act
 ```
 
-`act` uses Docker heavily; coverage and Compose jobs succeed only if Docker has enough RAM and pulls succeed. Treat `act` as *syntax + runner sanity*: CodeQL SARIF uploads and GitHub-only security UX stay authoritative on github.com.
+`act` uses Docker heavily; coverage and Compose jobs succeed only if Docker has enough RAM and pulls succeed. Treat `act` as *syntax + runner sanity*; GitHub-only security UX differs from local runs.
 
 ---
 

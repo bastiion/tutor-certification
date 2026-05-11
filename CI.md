@@ -1,6 +1,6 @@
 # Continuous integration (CI)
 
-Single reference for how this repository is checked on **GitHub Actions**, what runs **locally**, and how **Dependabot** / **CodeQL** / **act** fit in.  
+Single reference for how this repository is checked on **GitHub Actions**, what runs **locally**, and how **Dependabot** and **`act`** fit in.  
 Implementation logs: [doc/implementation/2026-05-11-github-ci-and-act.md](doc/implementation/2026-05-11-github-ci-and-act.md), [doc/implementation/2026-05-11-production-docker-release.md](doc/implementation/2026-05-11-production-docker-release.md).
 
 ---
@@ -10,8 +10,9 @@ Implementation logs: [doc/implementation/2026-05-11-github-ci-and-act.md](doc/im
 | File | Triggers | Purpose |
 |------|----------|---------|
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Push to `main`, all `pull_request` | Lint workflows, build Bun workspaces, PHP tests + static analysis, Compose smoke + Cypress, security audits, rollup |
-| [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) | Push/PR to `main`, weekly cron | CodeQL for **JavaScript** (includes TypeScript in the same language pack) |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | Push tag `v*.*.*` | Build production image ([`docker/production/Dockerfile`](docker/production/Dockerfile)), smoke-test, push to **GHCR**, create GitHub Release with [`deploy/`](deploy/) assets |
+
+**GitHub CodeQL** is intentionally **not** wired here for now (code scanning unused / unnecessary until the repo is public). Reintroduce via a `codeql.yml` workflow and enable **Code scanning** under repository settings when you want SARIF uploads.
 
 ### Global CI settings (`ci.yml`)
 
@@ -138,17 +139,6 @@ On **NixOS**, run Cypress from **`nix develop`** (see [.cursor/rules/cypress-tes
 
 ---
 
-## Workflow: CodeQL (`codeql.yml`)
-
-- **Permissions**: `security-events: write`, `actions: read`, `contents: read` (required for SARIF upload).
-- **Language**: `javascript` in `github/codeql-action/init@v3` — analyses JS/TS in the repo.
-- **Prep**: `bun install --frozen-lockfile` before **autobuild** so dependency graph and build hints are realistic.
-- **Schedule**: weekly (`cron: "5 4 * * 1"`).
-
-**Note**: Full CodeQL results and GitHub’s security UI are **authoritative on github.com**. Local `act` does not replace this.
-
----
-
 ## Dependabot
 
 [`.github/dependabot.yml`](.github/dependabot.yml) — **weekly** PRs, limit 10 open (where specified):
@@ -197,7 +187,7 @@ nix develop -c bun run ci:act
 ### Using `act` safely
 
 - Needs a working **Docker** daemon and enough disk/RAM for Linux job images plus Compose/Cypress pulls.
-- **CodeQL**, Dependabot alerts, and some GitHub-only integrations will **not** match `act` 1:1.
+- Dependabot alerts and some GitHub-only integrations will **not** match `act` 1:1.
 - Prefer **`act -j workflow-lint`** or **`act -j frontend`** for quick iteration before a full **`act pull_request`**.
 
 ---
@@ -219,10 +209,6 @@ flowchart TD
     CE --> SUM
     SEC --> SUM
   end
-
-  subgraph codeqlYml [codeql.yml]
-    Q[CodeQL javascript]
-  end
 ```
 
 ---
@@ -232,7 +218,6 @@ flowchart TD
 | Path | Role |
 |------|------|
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Main CI pipeline |
-| [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) | CodeQL |
 | [`.github/dependabot.yml`](.github/dependabot.yml) | Dependency update PRs |
 | [`docker-compose.yml`](docker-compose.yml) | CI-local stack (nginx, php, mailpit) |
 | [`package.json`](package.json) | `ci:*` scripts and `cypress:compose` |
@@ -244,4 +229,4 @@ flowchart TD
 ## Optional follow-ups
 
 - Add workflow **badges** in [`README.md`](README.md) once the workflow name and default branch are stable.
-- If **PHP CodeQL** becomes a first-class need, evaluate adding a separate CodeQL workflow or matrix language entry when supported for this org/repo.
+- When the repository is **public** and you want **Code scanning**, add `codeql.yml` (e.g. `javascript` for JS/TS) and enable code scanning in repository settings; optionally add **PHP** to the CodeQL matrix if supported.
