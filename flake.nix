@@ -17,6 +17,9 @@
         };
         buildInputs = with pkgs; [
           bun
+          docker-compose
+          php84
+          php84Packages.composer
         ];
       in
       {
