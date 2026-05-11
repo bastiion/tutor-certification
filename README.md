@@ -179,11 +179,47 @@ Frontend: `bun run typecheck`, `bun run build` or `bun run build:compose`; Cypre
 
 ---
 
+## CI and local rehearsal
+
+Long-form reference (jobs, artifacts, Dependabot, CodeQL, `act`): **[CI.md](CI.md)**.
+
+**On GitHub**: workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main` and on pull requests:
+
+- **workflow-lint** — [actionlint](https://github.com/rhysd/actionlint) on workflow files
+- **frontend** — `bun install --frozen-lockfile`, `typecheck`, `build`, `build:compose`, uploads **`static-spa`**
+- **backend** — `docker compose` PHP image; Pest coverage + **`--min=100`**, Mailpit integration, JUnit + Clover + HTML uploads
+- **compose-smoke-and-e2e** — restores SPA + HTML coverage artifacts, **`docker compose up`**, curls key routes, **`cypress:compose`** (Chrome)
+- **security** — `bun audit`, **`composer audit`**, optional Trivy fs scan (non-blocking exit code)
+- **ci-summary** — job table into the Actions step summary + fails the workflow if any job did not succeed
+
+Static analysis deep scan for JS/TS: [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml).
+
+Dependabot updates: [`.github/dependabot.yml`](.github/dependabot.yml).
+
+**Locally (everything that does not require GitHub):**
+
+```bash
+nix develop -c bun run ci:local
+```
+
+Requires Docker for the backend part; matches most of CI except Cypress (add manual `docker compose up` + `cypress:compose`) and security scans beyond audits.
+
+**Rehearse workflows with [act](https://github.com/nektos/act)** (provided in **`nix develop`**):
+
+```bash
+nix develop -c bun run ci:act:list
+nix develop -c bun run ci:act
+```
+
+`act` uses Docker heavily; coverage and Compose jobs succeed only if Docker has enough RAM and pulls succeed. Treat `act` as *syntax + runner sanity*: CodeQL SARIF uploads and GitHub-only security UX stay authoritative on github.com.
+
+---
+
 ## Further reading
 
 - [Concept — participation certificates & cryptography](doc/plan/key-signing-courses-plan.md)
 - [Monorepo / SPA / PHP implementation plan](doc/plan/key-signing-courses-plan-implementation.md)
 - [Bootstrap log — PHP tooling & Mailpit](doc/implementation/2026-05-11-php-backend-bootstrap.md)
 - [UI workspaces layout](doc/implementation/2026-05-11-ui-workspaces-layout.md)
-- [Compose static SPAs + dual Cypress](doc/implementation/2026-05-11-compose-static-spa-and-e2e.md)
-- Frontend conventions: [`CLAUDE.md`](CLAUDE.md) (Bun-first tooling)
+- [GitHub CI + act + Dependabot](doc/implementation/2026-05-11-github-ci-and-act.md)
+- [CI reference (pipelines, act, artifacts)](CI.md)
