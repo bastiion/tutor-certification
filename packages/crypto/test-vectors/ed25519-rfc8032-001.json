@@ -1,0 +1,7 @@
+{
+  "comment": "RFC 8032 §7.1 Ed25519 Test 1 (empty message) — libsodium deterministic detached signature parity.",
+  "seed_b64": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A",
+  "message_b64": "",
+  "expected_pk_b64": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+  "expected_signature_b64": "5VZDAMNgrHKQhuLMgG6CioSHfx645dl02HPgZSJJAVVfuIIVkKM7rMYeOXAc-bRr0lv18FlbviRlUUFDjnoQCw"
+}

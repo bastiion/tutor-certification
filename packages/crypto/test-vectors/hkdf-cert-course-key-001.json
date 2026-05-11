@@ -1,0 +1,7 @@
+{
+  "comment": "Synthetic minimal case: shortest course id, zero expiry unix instant.",
+  "ikm_b64": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+  "course_id": "a",
+  "valid_until_unix": 0,
+  "expected_okm_b64": "QLtHBXVmTNlbGgKVe4vJW9CnOoKp4W8K3EcWn1_L9HQ"
+}

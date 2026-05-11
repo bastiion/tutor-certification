@@ -1,0 +1,12 @@
+{
+  "description": "URL-safe alphabet, unpadded variants of classic Base64-length examples (RFC 4648 terminology). Stage 2 can round-trip identical strings in PHP via sodium Bin2Bin.",
+  "round_trips_utf8_to_b64url": [
+    { "utf8": "", "expected_b64url": "" },
+    { "utf8": "f", "expected_b64url": "Zg" },
+    { "utf8": "fo", "expected_b64url": "Zm8" },
+    { "utf8": "foo", "expected_b64url": "Zm9v" },
+    { "utf8": "foob", "expected_b64url": "Zm9vYg" },
+    { "utf8": "fooba", "expected_b64url": "Zm9vYmE" },
+    { "utf8": "foobar", "expected_b64url": "Zm9vYmFy" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "comment": "Typical UUID course id with mid-range unix expiry",
+  "ikm_b64": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+  "course_id": "018f5b2e-4b2a-7000-9000-abcdef123456",
+  "valid_until_unix": 1780000000,
+  "expected_okm_b64": "l4WzrgLVsayMYGIiEm51h1_Nqb7Mmiu56jG4pljWtzk"
+}
