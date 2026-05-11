@@ -127,12 +127,12 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: static-spa
           path: api/public/static-spa/
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-html-php
           path: api/coverage/html/
