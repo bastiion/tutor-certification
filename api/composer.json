@@ -10,7 +10,7 @@
     "slim/slim": "^4.14"
   },
   "require-dev": {
-    "pestphp/pest": "^3.8",
+    "pestphp/pest": "^4.7",
     "phpstan/phpstan": "^2.1",
     "zircote/swagger-php": "^4.11"
   },
