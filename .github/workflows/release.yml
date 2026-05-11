@@ -30,7 +30,7 @@ jobs:
           lc_repo=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           echo "IMAGE_NAME=ghcr.io/${lc_repo}" >>"${GITHUB_ENV}"
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
