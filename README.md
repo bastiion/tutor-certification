@@ -12,7 +12,7 @@ Product flows (enrollment, signing, revocation, verification) are **not fully im
 
 ## For organizers, tutors, and participants
 
-This section describes the **intended experience** once the roadmap is implemented. There is **no production deployment guide** here yet.
+This section describes the **intended experience** once the roadmap is implemented. A **minimal production-shaped Docker image** (single container, Bun-built SPAs + PHP) is published on **version tags** to GHCR — see **[Production Docker image](#production-docker-image-version-tags)** and [`deploy/README.md`](deploy/README.md).
 
 | Role | Intended use (target state) |
 |------|------------------------------|
@@ -20,7 +20,7 @@ This section describes the **intended experience** once the roadmap is implement
 | **Participant** | Opens the link while it is valid, enters their details (and optional email where supported), downloads or prints a certificate artifact (e.g. JSON + QR / print layout). |
 | **Third party** | Verifies a certificate using published keys and cryptographic checks; online checks may hit a revocation endpoint. |
 
-**Today:** there is nothing to “install” or “visit” as an end user without running the developer stack below. The running SPAs are mainly for iteration; the public PHP entrypoint under Docker returns a small JSON bootstrap response for connectivity checks.
+**Today:** end users still rely on whoever runs this software. Operators can **`docker pull ghcr.io/…`** for a tagged release and follow **[Production Docker image](#production-docker-image-version-tags)** / [`deploy/README.md`](deploy/README.md). Developers use the stacks below.
 
 For **deep product and crypto design**, see [Concept — Participation Certificate Service](doc/plan/key-signing-courses-plan.md).
 
@@ -57,7 +57,9 @@ nix develop
 | [`server.ts`](server.ts) | Bun dev server: routes `/tutor/`, `/enroll/`, `/verify/` |
 | `api/public/static-spa/` | Pre-built SPAs for Docker/nginx (from `bun run build:compose`, gitignored) |
 | [`api/`](api/) | Composer project: bootstrap PHP code, Pest tests, PHPStan, `public/index.php` |
-| [`docker/`](docker/) | Custom PHP image, nginx virtual host |
+| [`docker/`](docker/) | Custom PHP dev image + nginx virtual host (`docker/php`, `docker/nginx`) |
+| [`docker/production/`](docker/production) | Multi-stage **production** image (nginx + PHP-FPM, port **8080**); built by the release workflow |
+| [`deploy/`](deploy) | Traefik-oriented **one-shot compose** + `.env.example` (attached to GitHub Releases) |
 | [`e2e/`](e2e/) | Cypress specs |
 | [`doc/plan/`](doc/plan/) | Authoritative roadmap and implementation plan |
 | [`doc/implementation/`](doc/implementation/) | Shipped-scope notes |
@@ -179,6 +181,19 @@ Frontend: `bun run typecheck`, `bun run build` or `bun run build:compose`; Cypre
 
 ---
 
+### Production Docker image (version tags)
+
+Pushing a **semver tag** matching `v*.*.*` runs [`.github/workflows/release.yml`](.github/workflows/release.yml): it builds [`docker/production/Dockerfile`](docker/production/Dockerfile), smoke-tests HTTP routes, pushes **`ghcr.io/<lowercase-owner>/<repo>:<tag>`** and **`:latest`**, and publishes a GitHub Release with [`deploy/docker-compose.traefik.yml`](deploy/docker-compose.traefik.yml), [`deploy/.env.example`](deploy/.env.example), and [`deploy/README.md`](deploy/README.md).
+
+```bash
+docker pull ghcr.io/bastiion/tutor-certification:v0.1.0
+docker run --rm -p 8080:8080 ghcr.io/bastiion/tutor-certification:v0.1.0
+```
+
+Traefik-oriented compose and GHCR authentication for private packages: **[`deploy/README.md`](deploy/README.md)**.
+
+---
+
 ## CI and local rehearsal
 
 Long-form reference (jobs, artifacts, Dependabot, CodeQL, `act`): **[CI.md](CI.md)**.
@@ -222,4 +237,5 @@ nix develop -c bun run ci:act
 - [Bootstrap log — PHP tooling & Mailpit](doc/implementation/2026-05-11-php-backend-bootstrap.md)
 - [UI workspaces layout](doc/implementation/2026-05-11-ui-workspaces-layout.md)
 - [GitHub CI + act + Dependabot](doc/implementation/2026-05-11-github-ci-and-act.md)
+- [Production Docker image + GHCR release](doc/implementation/2026-05-11-production-docker-release.md)
 - [CI reference (pipelines, act, artifacts)](CI.md)

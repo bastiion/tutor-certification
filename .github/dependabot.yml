@@ -23,3 +23,8 @@ updates:
     directory: /docker/php
     schedule:
       interval: weekly
+
+  - package-ecosystem: docker
+    directory: /docker/production
+    schedule:
+      interval: weekly

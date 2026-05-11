@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  packages: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ghcr-release:
+    runs-on: ubuntu-latest
+    env:
+      SMOKE_PORT: "18080"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name (lowercase GHCR)
+        run: |
+          lc_repo=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=ghcr.io/${lc_repo}" >>"${GITHUB_ENV}"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build production image
+        run: |
+          docker build -f docker/production/Dockerfile -t "${IMAGE_NAME}:build" .
+
+      - name: Smoke test container
+        run: |
+          set -euo pipefail
+          cid=$(docker run -d -p "${SMOKE_PORT}:8080" "${IMAGE_NAME}:build")
+          cleanup() { docker rm -f "$cid" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:${SMOKE_PORT}/" >/dev/null 2>&1; then
+              break
+            fi
+            if [[ "$i" -eq 60 ]]; then
+              echo "::error::Container did not become ready on /"
+              docker logs "$cid" 2>&1 | tail -200 || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/" \
+            | python3 -c 'import json,sys; assert json.load(sys.stdin).get("ok") is True'
+          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/tutor/" >/dev/null
+          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/enroll/" >/dev/null
+          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/verify/" >/dev/null
+
+          for bad in /info.php /dev/ /coverage/ /coverage; do
+            code=$(curl -o /dev/null -sS -w '%{http_code}' "http://127.0.0.1:${SMOKE_PORT}${bad}" || echo "000")
+            if [[ "${code}" != "404" ]]; then
+              echo "::error::Expected 404 for ${bad}, got ${code}"
+              exit 1
+            fi
+          done
+
+      - name: Tag and push to GHCR
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          docker tag "${IMAGE_NAME}:build" "${IMAGE_NAME}:${tag}"
+          docker tag "${IMAGE_NAME}:build" "${IMAGE_NAME}:latest"
+          docker push "${IMAGE_NAME}:${tag}"
+          docker push "${IMAGE_NAME}:latest"
+
+      - name: Publish GitHub Release (compose bundle)
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            deploy/docker-compose.traefik.yml
+            deploy/.env.example
+            deploy/README.md
+
+      - name: Summary
+        run: |
+          {
+            echo "## Release"
+            echo "- Image **${IMAGE_NAME}:${GITHUB_REF_NAME}** (also **latest**)"
+            echo "- Assets: Traefik compose, \`.env.example\`, deploy README"
+          } >>"${GITHUB_STEP_SUMMARY}"
