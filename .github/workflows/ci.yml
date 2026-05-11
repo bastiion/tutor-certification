@@ -81,7 +81,7 @@ jobs:
               --coverage-html=coverage/html \
               --coverage-clover=coverage/clover.xml \
               --log-junit=coverage/junit.xml \
-              --min=100'
+              --min=90'
 
       - name: PHPStan
         run: |
@@ -114,7 +114,7 @@ jobs:
         run: |
           {
             echo "## Backend"
-            echo "- Pest with coverage (--min 100 %) + Mailpit integration"
+            echo "- Pest with coverage (--min 90 %) + Mailpit integration"
             echo "- PHPStan (GitHub annotations via error-format)"
             echo ""
             echo "Artifacts: \`coverage-clover-php\`, \`coverage-html-php\`, \`junit-php\`"

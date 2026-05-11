@@ -113,7 +113,7 @@ Inside the **`php`** service, `MAILPIT_INTEGRATION=1`, `MAILPIT_API_BASE`, `SMTP
 |---------|--------|
 | `bun run composer:backend` | `composer install` in container |
 | `bun run test:backend` | Pest |
-| `bun run test:backend:coverage` | Pest + coverage + `--min=100` for `api/src/` |
+| `bun run test:backend:coverage` | Pest + coverage + `--min=90` for `api/src/` |
 | `bun run analyse:backend` | PHPStan |
 
 **Without Docker**, from `nix develop` you can use host `composer`/`php`:
@@ -130,14 +130,16 @@ Coverage artifacts (when generated): [`api/coverage/html`](api/coverage) and `ap
 
 ### End-to-end tests (Cypress)
 
-[`cypress.config.cjs`](cypress.config.cjs) sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, default **`http://localhost:3000`**. Specs use path-only URLs (e.g. **`/tutor/`**) so the same tests run against **Bun dev** or **Docker nginx + static build**.
+[`cypress.config.ts`](cypress.config.ts) sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, default **`http://localhost:3000`**. Specs use path-only URLs (e.g. **`/tutor/`**) so the same tests run against **Bun dev** or **Docker nginx + static build**.
 
 | Target | When | Command (examples) |
 |--------|------|---------------------|
 | Hot reload (Bun) | `bun dev` on port 3000 | `nix develop -c bun run cypress` |
 | Staging-like (Compose) | `bun run build:compose` + `docker compose up`, nginx on 7123 | `nix develop -c bun run cypress:compose` |
 
-Optional: `CYPRESS_BASE_URL=http://127.0.0.1:7123 cypress run` for any host/port.
+**Compose Cypress scripts** (`cypress:compose`, `cypress:compose:open`) load [`docker/php/dev.env`](docker/php/dev.env) before starting Cypress so **`TUTOR_API_TOKEN`**, **`SERVER_BOX_KEYPAIR_BASE64`**, and related vars match the PHP API container (required for `api-flow.cy.ts` tasks).
+
+Optional: `CYPRESS_BASE_URL=http://127.0.0.1:7123 cypress run` for any host/port (you must still export the same secrets yourself if not using those scripts).
 
 Browser **`console.log` / `warn` / `error`** during tests is echoed to the terminal via [`e2e/support/e2e.ts`](e2e/support/e2e.ts) with a **`[browser:…]`** prefix.
 
@@ -202,7 +204,7 @@ Long-form reference (jobs, artifacts, Dependabot, `act`): **[CI.md](CI.md)**.
 
 - **workflow-lint** — [actionlint](https://github.com/rhysd/actionlint) on workflow files
 - **frontend** — `bun install --frozen-lockfile`, `typecheck`, `build`, `build:compose`, uploads **`static-spa`**
-- **backend** — `docker compose` PHP image; Pest coverage + **`--min=100`**, Mailpit integration, JUnit + Clover + HTML uploads
+- **backend** — `docker compose` PHP image; Pest coverage + **`--min=90`**, Mailpit integration, JUnit + Clover + HTML uploads
 - **compose-smoke-and-e2e** — restores SPA + HTML coverage artifacts, **`docker compose up`**, curls key routes, **`cypress:compose`** (Chrome)
 - **security** — `bun audit`, **`composer audit`**, optional Trivy fs scan (non-blocking exit code)
 - **ci-summary** — job table into the Actions step summary + fails the workflow if any job did not succeed

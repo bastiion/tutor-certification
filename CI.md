@@ -71,7 +71,7 @@ Or use **`actionlint`** from `nix develop` ([`flake.nix`](flake.nix)).
      - `--coverage-html=coverage/html`
      - `--coverage-clover=coverage/clover.xml`
      - `--log-junit=coverage/junit.xml`
-     - `--min=100` (bootstrap: 100 % of measured `api/src/`)
+     - `--min=90` (bootstrap: ≥90 % line coverage of measured `api/src/`)
   4. **PHPStan**: `./vendor/bin/phpstan analyse --memory-limit=-1 --error-format=github` (annotations in the Actions UI).
 
 **Artifacts**
