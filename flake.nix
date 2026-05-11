@@ -3,11 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    # act from stable nixpkgs (e.g. 0.2.77) rejects actions that declare `runs.using: node24`;
+    # pull a newer act from unstable so `bun run ci:act` matches current GitHub Actions.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    { self, nixpkgs, flake-utils }:
+    { self, nixpkgs, nixpkgs-unstable, flake-utils }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -15,8 +18,12 @@
           inherit system;
           config.allowUnfree = true;
         };
+        pkgsUnstable = import nixpkgs-unstable {
+          inherit system;
+          config.allowUnfree = true;
+        };
         buildInputs = with pkgs; [
-          act
+          pkgsUnstable.act
           actionlint
           bun
           docker-compose
