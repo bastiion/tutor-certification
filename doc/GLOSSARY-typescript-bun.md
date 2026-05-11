@@ -66,7 +66,7 @@ Tells the **TypeScript compiler** (and your editor) how strict to be, which synt
 A **browser end-to-end (E2E) test** runner: scripts drive a real browser (clicks, typing, navigation) against your running app.
 
 - Specs live under [`e2e/`](../e2e/).
-- **`cypress.config.cjs`** sets **`baseUrl`** (here: `http://localhost:3000`) so tests know where the app is.
+- **`cypress.config.cjs`** sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, or **`http://localhost:3000`** when unset; use **`bun run cypress:compose`** to target Docker nginx (e.g. port 7123).
 - On **NixOS**, run Cypress **inside `nix develop`** so it uses the Nix-packaged Electron binary (avoids broken dynamic linking).
 
 ---
