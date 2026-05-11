@@ -164,7 +164,7 @@ jobs:
       - name: Install Cypress (Bun workspaces)
         run: bun install --frozen-lockfile
 
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           browser: chrome
           install: false

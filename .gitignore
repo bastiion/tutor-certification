@@ -28,10 +28,11 @@ doc/plan/stages
 # Nix
 result
 
-# Cypress (optional local artifacts)
+# Cypress (optional local artifacts + compiled task bundles)
 cypress/screenshots
 cypress/videos
 cypress/downloads
+*.bundle.mjs
 
 # caches
 .eslintcache
