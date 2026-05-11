@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["cypress", "bun-types"],
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true
+  },
+  "include": ["./**/*.cy.ts"]
+}
