@@ -33,6 +33,7 @@
       "name": "@bastiion/tutor",
       "version": "0.1.0",
       "dependencies": {
+        "@bastiion/crypto": "workspace:*",
         "bun-plugin-tailwind": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
