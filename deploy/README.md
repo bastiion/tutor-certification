@@ -26,16 +26,6 @@ Dev-only paths are **not** served in production (`/info.php`, `/dev/`, `/coverag
 docker compose -f docker-compose.traefik.yml --env-file .env up -d
 ```
 
-### GHCR authentication (private packages)
-
-If the package is private, log in on the host before `compose up`:
-
-```bash
-echo "$GITHUB_TOKEN" | docker login ghcr.io -u USERNAME --password-stdin
-```
-
-Use a token with `read:packages`. For org repos, ensure the token can read the package.
-
 ## GitHub configuration
 
 - **No extra secrets** are required for CI to push: the default `GITHUB_TOKEN` with `packages: write` is enough.
