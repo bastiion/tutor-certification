@@ -25,6 +25,8 @@
     "build": "bun run build.ts",
     "build:compose": "bun run build.ts --outdir=api/public/static-spa && bun scripts/write-spa-htaccess.ts api/public/static-spa",
     "typecheck": "tsc --noEmit",
+    "test": "bun run --cwd packages/crypto lint:no-console-crypto && bun test --coverage",
+    "docs:crypto": "typedoc --entryPoints packages/crypto/src/index.ts --out docs/api/crypto",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "cypress:compose": "CYPRESS_BASE_URL=http://localhost:7123 cypress run",
@@ -35,7 +37,7 @@
     "test:backend": "docker compose run --rm --entrypoint composer php test",
     "test:backend:coverage": "docker compose run --rm --entrypoint composer php test:coverage-bootstrap",
     "analyse:backend": "docker compose run --rm --entrypoint composer php analyse",
-    "ci:local": "bun run typecheck && bun run build && bun run build:compose && bun run test:backend:coverage && bun run analyse:backend",
+    "ci:local": "bun run typecheck && bun run test && bun run build && bun run build:compose && bun run test:backend:coverage && bun run analyse:backend",
     "ci:act:list": "act --list",
     "ci:act": "act pull_request --verbose"
   },
@@ -46,6 +48,7 @@
     "bun-plugin-tailwind": "catalog:",
     "bun-types": "catalog:",
     "cypress": "catalog:",
+    "typedoc": "^0.28.19",
     "typescript": "catalog:"
   }
 }

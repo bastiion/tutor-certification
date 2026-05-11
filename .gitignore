@@ -66,3 +66,6 @@ composer.phar
 *.sqlite
 *.sqlite-journal
 *.sqlite3
+
+# Typedoc (optional `bun run docs:crypto`)
+docs/api/
