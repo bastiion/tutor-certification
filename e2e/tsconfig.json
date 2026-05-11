@@ -4,10 +4,11 @@
     "lib": ["ESNext", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["cypress"],
+    "types": ["cypress", "node"],
     "isolatedModules": true
   },
   "include": ["./**/*.cy.ts", "./support/**/*.ts"]
