@@ -106,4 +106,32 @@ describe('Certificate', function (): void {
 
         expect($c->withCertificateSig($cs))->toBeInstanceOf(Certificate::class);
     });
+
+    test('participant email appears in JSON slices when present', function (): void {
+        $km = sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        $kc = sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        $ss = sodium_bin2base64(random_bytes(SODIUM_CRYPTO_SIGN_BYTES), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+
+        $c = new Certificate(
+            certId: '078f5b2e-4b2a-7000-9000-abcdef123456',
+            version: 1,
+            issuedAt: '2026-05-11T12:02:00+00:00',
+            course: mkCourse(),
+            participant: ['name' => 'Ada', 'email' => 'ada@example.test'],
+            institute: mkInstitute(),
+            kMasterPublicBase64Url: $km,
+            kCoursePublicBase64Url: $kc,
+            sessionSigBase64Url: $ss,
+            certificateSigBase64Url: '',
+        );
+
+        /** @var array{participant: array{name: string, email?: string}} $signing */
+        $signing = json_decode($c->toSigningJson(), true, flags: JSON_THROW_ON_ERROR);
+        expect($signing['participant']['email'] ?? null)->toBe('ada@example.test');
+
+        $withSig = $c->withCertificateSig(sodium_bin2base64(random_bytes(SODIUM_CRYPTO_SIGN_BYTES), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING));
+        /** @var array{participant: array{name: string, email?: string}} $resp */
+        $resp = json_decode($withSig->toResponseJson(), true, flags: JSON_THROW_ON_ERROR);
+        expect($resp['participant']['email'] ?? null)->toBe('ada@example.test');
+    });
 });

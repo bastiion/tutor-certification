@@ -283,12 +283,6 @@ parameters:
 			path: tests/Integration/RouteCoverageTest.php
 
 		-
-			message: '#^Cannot access offset ''enroll_url'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: tests/Integration/RouteCoverageTest.php
-
-		-
 			message: '#^Cannot access offset ''ok'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -297,19 +291,13 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 5
+			count: 3
 			path: tests/Integration/RouteCoverageTest.php
 
 		-
 			message: '#^Comparison operation "\>\=" between int\<1, max\> and 1 is always true\.$#'
 			identifier: greaterOrEqual.alwaysTrue
 			count: 1
-			path: tests/Integration/RouteCoverageTest.php
-
-		-
-			message: '#^Parameter \#3 \$path of static method Tests\\Support\\AppRequest\:\:dispatch\(\) expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 2
 			path: tests/Integration/RouteCoverageTest.php
 
 		-

@@ -8,6 +8,24 @@ use App\Http\SlimApplicationFactory;
 use Tests\Support\AppRequest;
 use Tests\Support\SessionCredentialFixture;
 
+/**
+ * @phpstan-assert array<mixed> $sessionBody
+ */
+function routeCoverageApiEnrollPath(mixed $sessionBody): string
+{
+    assert(is_array($sessionBody));
+    assert(isset($sessionBody['enroll_url']) && is_string($sessionBody['enroll_url']));
+    $enrollUrl = $sessionBody['enroll_url'];
+
+    $path = parse_url($enrollUrl, PHP_URL_PATH);
+    assert(is_string($path));
+
+    $api = preg_replace('#^/enroll/#', '/api/enroll/', $path, 1);
+    assert(is_string($api));
+
+    return $api;
+}
+
 describe('HTTP route coverage', function (): void {
     test('GET /api/health returns ok and GIT_SHA when set', function (): void {
         putenv('GIT_SHA=deadbeef');
@@ -518,8 +536,7 @@ describe('HTTP route coverage', function (): void {
                 'Authorization' => ['Bearer ' . $bearer],
             ], $cred);
             $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
-            $path = parse_url((string) $sessBody['enroll_url'], PHP_URL_PATH);
-            $apiEnrollPath = preg_replace('#^/enroll/#', '/api/enroll/', (string) $path, 1);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
 
             $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], []);
             expect($res->getStatusCode())->toBe(400);
@@ -551,8 +568,7 @@ describe('HTTP route coverage', function (): void {
             expect($sess->getStatusCode())->toBe(200);
 
             $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
-            $path = parse_url((string) $sessBody['enroll_url'], PHP_URL_PATH);
-            $apiEnrollPath = preg_replace('#^/enroll/#', '/api/enroll/', (string) $path, 1);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
 
             $enroll = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Route Coverage']);
             expect($enroll->getStatusCode())->toBe(200);
@@ -572,6 +588,344 @@ describe('HTTP route coverage', function (): void {
             /** @var array{name: non-empty-string, key_fingerprint: non-empty-string} $institute */
             $institute = $cert['institute'];
             expect($institute['key_fingerprint'])->toBe($signer->masterPublicFingerprintHex($kMasterRaw));
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('OPTIONS preflight receives CORS headers when origin is allowed', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-cors');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        $prev = getenv('CORS_ALLOWED_ORIGINS');
+        putenv('CORS_ALLOWED_ORIGINS=http://localhost:5173');
+        $_ENV['CORS_ALLOWED_ORIGINS'] = 'http://localhost:5173';
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $res = AppRequest::dispatch($app, 'OPTIONS', '/api/health', [
+                'Origin' => ['http://localhost:5173'],
+            ]);
+
+            expect($res->getStatusCode())->toBe(204)
+                ->and($res->getHeaderLine('Access-Control-Allow-Origin'))->toBe('http://localhost:5173');
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+
+            if ($prev === false) {
+                putenv('CORS_ALLOWED_ORIGINS');
+                unset($_ENV['CORS_ALLOWED_ORIGINS']);
+            } else {
+                putenv('CORS_ALLOWED_ORIGINS=' . $prev);
+                $_ENV['CORS_ALLOWED_ORIGINS'] = $prev;
+            }
+        }
+    });
+
+    test('POST /api/enroll returns 400 when JSON body is not an object', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-json');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b38f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatchWithRawBody($app, 'POST', $apiEnrollPath, [], 'null');
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll returns 400 when email has wrong type', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-mail');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b48f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Ann', 'email' => 12345]);
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll returns 404 when stored master public is unreadable', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-mp');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b58f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $pdo = new PDO('sqlite:' . $sqlite, options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            $stmt = $pdo->prepare('UPDATE sessions SET k_master_pub = ? WHERE id = ?');
+            $stmt->execute(['@@@not-valid-b64url@@@', $courseId]);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Corrupt MP']);
+            expect($res->getStatusCode())->toBe(404);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll returns 400 when sealed course key ciphertext is invalid', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-enc');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b68f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $pdo = new PDO('sqlite:' . $sqlite, options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            $stmt = $pdo->prepare('UPDATE sessions SET k_course_priv_enc = ? WHERE id = ?');
+            $stmt->execute(['QQ', $courseId]);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Bad enc']);
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll returns 400 when decrypted course signing key length wrong', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-len');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b78f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $serverPk = sodium_crypto_box_publickey($box);
+            $shortPlain = random_bytes(12);
+            /** @var non-empty-string $badEnc */
+            $badEnc = sodium_crypto_box_seal($shortPlain, $serverPk);
+
+            $pdo = new PDO('sqlite:' . $sqlite, options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            $stmt = $pdo->prepare('UPDATE sessions SET k_course_priv_enc = ? WHERE id = ?');
+            $stmt->execute([$signer->base64UrlEncode($badEnc), $courseId]);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Short key']);
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/enroll returns 400 when stored course public does not match decrypted secret', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-enroll-pkm');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $courseId = 'b88f5b2e-4b2a-7000-9000-abcdef123456';
+            $cred = SessionCredentialFixture::validArray($signer, $box, $courseId, time() + 7200);
+
+            $bearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $bearer],
+            ], $cred);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $pdo = new PDO('sqlite:' . $sqlite, options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            $foreignPk = sodium_crypto_sign_publickey(sodium_crypto_sign_keypair());
+            $stmt = $pdo->prepare('UPDATE sessions SET k_course_pub = ? WHERE id = ?');
+            $stmt->execute([$signer->base64UrlEncode($foreignPk), $courseId]);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $res = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Pk mismatch']);
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/sessions returns 400 when credential JSON has unexpected fields', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-s-extra');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $cred = SessionCredentialFixture::validArray($signer, $box, 'b98f5b2e-4b2a-7000-9000-abcdef123456', time() + 7200);
+            $cred['unexpected_field'] = true;
+
+            $res = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . Env::string('TUTOR_API_TOKEN')],
+            ], $cred);
+
+            expect($res->getStatusCode())->toBe(400);
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('POST /api/revocations skips unreadable master rows when verifying signature', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-rev-masters');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $signer = new Signer();
+            $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
+            $bundle = SessionCredentialFixture::validArrayWithSecrets($signer, $box, 'ba8f5b2e-4b2a-7000-9000-abcdef123456', time() + 7200);
+
+            $tutorBearer = Env::string('TUTOR_API_TOKEN');
+            $sess = AppRequest::dispatch($app, 'POST', '/api/sessions', [
+                'Authorization' => ['Bearer ' . $tutorBearer],
+            ], $bundle['credential']);
+            expect($sess->getStatusCode())->toBe(200);
+
+            $pdo = new PDO('sqlite:' . $sqlite, options: [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+            $junkPk = $signer->base64UrlEncode(random_bytes(32));
+            $junkSig = $signer->base64UrlEncode(random_bytes(SODIUM_CRYPTO_SIGN_BYTES));
+            $junkEnc = $signer->base64UrlEncode(random_bytes(48));
+            $ins = $pdo->prepare(
+                'INSERT INTO sessions (id, course_title, course_date, institute_name, k_master_pub, k_course_pub, session_sig, k_course_priv_enc, valid_until, tutor_email)
+                 VALUES (:id, :t, :d, :i, :km, :kc, :ss, :ke, :vu, :em)',
+            );
+            $ins->execute([
+                ':id' => 'junk-session-row',
+                ':t' => 'junk',
+                ':d' => '2026-01-01',
+                ':i' => 'junk',
+                ':km' => 'not-valid-base64url-master-pub',
+                ':kc' => $junkPk,
+                ':ss' => $junkSig,
+                ':ke' => $junkEnc,
+                ':vu' => time() + 3600,
+                ':em' => 'junk@example.test',
+            ]);
+
+            $sessBody = json_decode((string) $sess->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $apiEnrollPath = routeCoverageApiEnrollPath($sessBody);
+
+            $enroll = AppRequest::dispatch($app, 'POST', $apiEnrollPath, [], ['name' => 'Rev Junk Masters']);
+            expect($enroll->getStatusCode())->toBe(200);
+            $cert = json_decode((string) $enroll->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            assert(is_array($cert));
+            assert(isset($cert['cert_id']) && is_string($cert['cert_id']));
+            $certId = $cert['cert_id'];
+
+            $revokedAt = gmdate('c');
+            $msg = (string) $certId . $revokedAt;
+            $sig = sodium_crypto_sign_detached($msg, $bundle['master_secret_key_64']);
+            $revPayload = [
+                'cert_id' => $certId,
+                'revoked_at' => $revokedAt,
+                'reason' => 'junk-master-row-present',
+                'signature' => $signer->base64UrlEncode($sig),
+            ];
+
+            $revRes = AppRequest::dispatch($app, 'POST', '/api/revocations', [
+                'Authorization' => ['Bearer ' . $tutorBearer],
+            ], $revPayload);
+
+            expect($revRes->getStatusCode())->toBe(200);
         } finally {
             @unlink($sqlite);
             putenv('API_SQLITE_PATH');

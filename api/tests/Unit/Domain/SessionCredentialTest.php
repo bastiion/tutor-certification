@@ -41,4 +41,48 @@ describe('SessionCredential', function (): void {
         $base['valid_until'] = -1;
         expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class);
     });
+
+    test('rejects whitespace-only course_id', function () use ($minimal): void {
+        $base = $minimal();
+        $base['course_id'] = " \t ";
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class);
+    });
+
+    test('rejects valid_until that is not numeric', function () use ($minimal): void {
+        $base = $minimal();
+        $base['valid_until'] = '2030';
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class);
+    });
+
+    test('rejects non-string course_title', function () use ($minimal): void {
+        $base = $minimal();
+        $base['course_title'] = 123;
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class, 'course_title');
+    });
+
+    test('rejects empty K_course_public', function () use ($minimal): void {
+        $base = $minimal();
+        $base['K_course_public'] = '';
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class, 'K_course_public');
+    });
+
+    test('rejects non-string fingerprint', function () use ($minimal): void {
+        $base = $minimal();
+        $base['K_master_public_fingerprint'] = 12345;
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class, 'K_master_public_fingerprint');
+    });
+
+    test('rejects fingerprint with invalid hex length', function () use ($minimal): void {
+        $base = $minimal();
+        $base['K_master_public_fingerprint'] = str_repeat('b', 63);
+        expect(fn () => SessionCredential::fromArray($base))->toThrow(\InvalidArgumentException::class, '64 hex');
+    });
+
+    test('normalizes uppercase fingerprint hex to lowercase', function () use ($minimal): void {
+        $base = $minimal();
+        $hex = str_repeat('b', 60) . 'cafe';
+        $base['K_master_public_fingerprint'] = strtoupper($hex);
+        $cred = SessionCredential::fromArray($base);
+        expect($cred->kMasterPublicFingerprintHex)->toBe(strtolower($hex));
+    });
 });

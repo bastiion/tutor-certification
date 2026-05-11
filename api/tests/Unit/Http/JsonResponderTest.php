@@ -21,4 +21,12 @@ describe('JsonResponder', function (): void {
         $body = json_decode((string) $out->getBody(), true, flags: JSON_THROW_ON_ERROR);
         expect($body)->toBe(['error' => ['code' => 'test_code', 'message' => 'hello']]);
     });
+
+    test('error throws when message is not valid UTF-8 for JSON', function (): void {
+        $response = (new ResponseFactory())->createResponse();
+        $bad = "bad\xff\xff";
+
+        expect(fn () => JsonResponder::error($response, 'code', $bad, 400))
+            ->toThrow(\RuntimeException::class, 'JSON encode failure');
+    });
 });

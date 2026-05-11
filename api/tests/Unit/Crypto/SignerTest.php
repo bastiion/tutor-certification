@@ -79,4 +79,23 @@ describe('Signer', function (): void {
         expect(fn (): string => $signer->deriveSessionSeed(random_bytes(32), 'c', -1))
             ->toThrow(\InvalidArgumentException::class);
     });
+
+    test('ed25519SecretKeyFromSeed expands to libsodium secret key format', function (): void {
+        $signer = new Signer();
+        $seed = random_bytes(32);
+        $sk64 = $signer->ed25519SecretKeyFromSeed($seed);
+        expect(strlen($sk64))->toBe(SODIUM_CRYPTO_SIGN_SECRETKEYBYTES)
+            ->and(strlen($signer->ed25519PublicKeyFromSecretKey($sk64)))->toBe(SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES);
+    });
+
+    test('boxSealOpen returns false for ciphertext sealed to a different keypair', function (): void {
+        $signer = new Signer();
+        $kpA = sodium_crypto_box_keypair();
+        $kpB = sodium_crypto_box_keypair();
+        $pkA = sodium_crypto_box_publickey($kpA);
+        $ct = $signer->boxSeal('plaintext', $pkA);
+        assert($ct !== '');
+        $kpB64 = sodium_crypto_box_secretkey($kpB) . sodium_crypto_box_publickey($kpB);
+        expect($signer->boxSealOpen($ct, $kpB64))->toBeFalse();
+    });
 });
