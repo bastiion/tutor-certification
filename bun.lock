@@ -18,6 +18,14 @@
         "typescript": "catalog:",
       },
     },
+    "apps/env-wizard": {
+      "name": "@bastiion/env-wizard",
+      "version": "0.1.0",
+      "dependencies": {
+        "@clack/prompts": "^0.11.0",
+        "libsodium-wrappers": "0.7.13",
+      },
+    },
     "apps/participant": {
       "name": "@bastiion/participant",
       "version": "0.1.0",
@@ -52,9 +60,11 @@
       "dependencies": {
         "@bastiion/crypto": "workspace:*",
         "bun-plugin-tailwind": "catalog:",
+        "jsqr": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
         "tailwindcss": "catalog:",
+        "zod": "catalog:",
       },
     },
     "packages/crypto": {
@@ -76,6 +86,7 @@
     "bun-plugin-tailwind": "^0.1.2",
     "bun-types": "1.3.13",
     "cypress": "13.17.0",
+    "jsqr": "^1.4.0",
     "qrcode": "^1.5.4",
     "react": "^19",
     "react-dom": "^19",
@@ -86,11 +97,17 @@
   "packages": {
     "@bastiion/crypto": ["@bastiion/crypto@workspace:packages/crypto"],
 
+    "@bastiion/env-wizard": ["@bastiion/env-wizard@workspace:apps/env-wizard"],
+
     "@bastiion/participant": ["@bastiion/participant@workspace:apps/participant"],
 
     "@bastiion/tutor": ["@bastiion/tutor@workspace:apps/tutor"],
 
     "@bastiion/verify": ["@bastiion/verify@workspace:apps/verify"],
+
+    "@clack/core": ["@clack/core@0.5.0", "", { "dependencies": { "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow=="],
+
+    "@clack/prompts": ["@clack/prompts@0.11.0", "", { "dependencies": { "@clack/core": "0.5.0", "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-pMN5FcrEw9hUkZA4f+zLlzivQSeQf5dRGJjSUbvVYDLvpKCdQx5OaknvKzgbtXOizhP+SJJJjqEbOe55uKKfAw=="],
 
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
@@ -376,6 +393,8 @@
 
     "jsprim": ["jsprim@2.0.2", "", { "dependencies": { "assert-plus": "1.0.0", "extsprintf": "1.3.0", "json-schema": "0.4.0", "verror": "1.10.0" } }, "sha512-gqXddjPqQ6G40VdnI6T6yObEC+pDNvyP95wdQhkWkg7crHH3km5qP1FsOXEkzEQwnz6gz5qGTn1c2Y52wP3OyQ=="],
 
+    "jsqr": ["jsqr@1.4.0", "", {}, "sha512-dxLob7q65Xg2DvstYkRpkYtmKm2sPJ9oFhrhmudT1dZvNFFTlroai3AWSpLey/w5vMcLBXRgOJsbXpdN9HzU/A=="],
+
     "lazy-ass": ["lazy-ass@1.6.0", "", {}, "sha512-cc8oEVoctTvsFZ/Oje/kGnHbpWHYBe8IAJe4C0QNc3t8uM/0Y8+erSz/7Y1ALuXTEZTMvxXwO6YbX1ey3ujiZw=="],
 
     "libsodium": ["libsodium@0.7.16", "", {}, "sha512-3HrzSPuzm6Yt9aTYCDxYEG8x8/6C0+ag655Y7rhhWZM9PT4NpdnbqlzXhGZlDnkgR6MeSTnOt/VIyHLs9aSf+Q=="],
@@ -444,6 +463,8 @@
 
     "performance-now": ["performance-now@2.1.0", "", {}, "sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow=="],
 
+    "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
+
     "pify": ["pify@2.3.0", "", {}, "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="],
 
     "pngjs": ["pngjs@5.0.0", "", {}, "sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw=="],
@@ -501,6 +522,8 @@
     "side-channel-weakmap": ["side-channel-weakmap@1.0.2", "", { "dependencies": { "call-bound": "^1.0.2", "es-errors": "^1.3.0", "get-intrinsic": "^1.2.5", "object-inspect": "^1.13.3", "side-channel-map": "^1.0.1" } }, "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="],
 
     "signal-exit": ["signal-exit@3.0.7", "", {}, "sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ=="],
+
+    "sisteransi": ["sisteransi@1.0.5", "", {}, "sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg=="],
 
     "slice-ansi": ["slice-ansi@3.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "astral-regex": "^2.0.0", "is-fullwidth-code-point": "^3.0.0" } }, "sha512-pSyv7bSTC7ig9Dcgbw9AuRNUb5k5V6oDudjZoMBSr13qpLBG7tB+zgCkARjq7xIUgdz5P1Qe8u+rSGdouOOIyQ=="],
 
