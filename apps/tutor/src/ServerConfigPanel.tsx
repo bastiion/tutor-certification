@@ -50,7 +50,7 @@ export function ServerConfigPanel() {
 
   return (
     <div
-      className="border-b border-stone-200 bg-stone-50 text-sm text-stone-700"
+      className="no-print border-b border-stone-200 bg-stone-50 text-sm text-stone-700"
       data-cy="server-config-panel"
     >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-2">

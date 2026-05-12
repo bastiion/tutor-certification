@@ -49,7 +49,7 @@ export function VerifyDrop(): React.ReactElement {
           return;
         }
         if (file.size > VERIFY_IMAGE_MAX_BYTES) {
-          setError("Bild zu groß (maximal 4 MB).");
+          setError("Bild zu groß (maximal 10 MB).");
           return;
         }
         setError(null);

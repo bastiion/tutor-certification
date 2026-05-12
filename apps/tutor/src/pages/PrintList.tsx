@@ -38,6 +38,11 @@ function CertificateSheet({
       <h1 className="certificate-title">{config.title}</h1>
       <p className="certificate-lead mt-10">Hiermit wird bescheinigt, dass</p>
       <p className="certificate-name my-8">{participantName}</p>
+      <p className="certificate-lead">
+        {desc
+          ? "an der folgenden Veranstaltung teilgenommen hat:"
+          : "an dieser Veranstaltung teilgenommen hat."}
+      </p>
       {desc ? (
         <div className="certificate-description mt-6 max-w-prose whitespace-pre-wrap text-center leading-relaxed">
           {desc}

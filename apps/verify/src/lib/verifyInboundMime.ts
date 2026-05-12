@@ -3,7 +3,7 @@
  */
 
 export const VERIFY_JSON_MAX_BYTES = 64 * 1024;
-export const VERIFY_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
+export const VERIFY_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 
 export const VERIFY_FILE_ACCEPT_ATTR =
   "application/json,.json,image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp";
