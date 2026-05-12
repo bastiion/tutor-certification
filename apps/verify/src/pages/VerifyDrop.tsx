@@ -1,9 +1,14 @@
 import { useCallback, useState, type ReactElement } from "react";
 import type { VerificationResult } from "../lib/verifier.ts";
 import { verify } from "../lib/verifier.ts";
+import { rawCertificateJsonFromQrPayload, readQrTextFromImageFile } from "../lib/qrImageScan.ts";
+import {
+  VERIFY_FILE_ACCEPT_ATTR,
+  VERIFY_IMAGE_MAX_BYTES,
+  VERIFY_JSON_MAX_BYTES,
+  classifyVerifyFile,
+} from "../lib/verifyInboundMime.ts";
 import { VerificationVerdict } from "../VerificationVerdict.tsx";
-
-const MAX_BYTES = 64 * 1024;
 
 export function VerifyDrop(): React.ReactElement {
   const [raw, setRaw] = useState("");
@@ -21,17 +26,52 @@ export function VerifyDrop(): React.ReactElement {
 
   const onFile = useCallback(
     (file: File) => {
-      if (file.size > MAX_BYTES) {
-        setError("Datei zu groß (maximal 64 KB).");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = typeof reader.result === "string" ? reader.result : "";
-        setRaw(text);
-        runVerify(text);
-      };
-      reader.readAsText(file, "UTF-8");
+      void (async () => {
+        const kind = classifyVerifyFile(file);
+        if (kind === "unknown") {
+          setError(
+            "Dateityp nicht unterstützt. Erlaubt: JSON oder QR-Foto (PNG/JPEG/WebP). PDF-Unterstützung ist geplant.",
+          );
+          return;
+        }
+        if (kind === "json") {
+          if (file.size > VERIFY_JSON_MAX_BYTES) {
+            setError("Datei zu groß (maximal 64 KB).");
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => {
+            const text = typeof reader.result === "string" ? reader.result : "";
+            setRaw(text);
+            runVerify(text);
+          };
+          reader.readAsText(file, "UTF-8");
+          return;
+        }
+        if (file.size > VERIFY_IMAGE_MAX_BYTES) {
+          setError("Bild zu groß (maximal 4 MB).");
+          return;
+        }
+        setError(null);
+        try {
+          const qr = await readQrTextFromImageFile(file);
+          if (qr === null) {
+            setError("Kein QR-Code im Bild erkannt.");
+            return;
+          }
+          let text: string;
+          try {
+            text = rawCertificateJsonFromQrPayload(qr);
+          } catch {
+            setError("QR-Inhalt ist kein gültiges Zertifikat (Base64URL).");
+            return;
+          }
+          setRaw(text);
+          runVerify(text);
+        } catch {
+          setError("Bild konnte nicht gelesen werden.");
+        }
+      })();
     },
     [runVerify],
   );
@@ -40,9 +80,9 @@ export function VerifyDrop(): React.ReactElement {
     <section className="mx-auto max-w-xl p-8" data-cy="verify-drop">
       <h1 className="text-xl font-semibold text-stone-900">Bescheinigung prüfen</h1>
       <p className="mt-3 text-sm text-stone-600">
-        Legen Sie die Bescheinigungsdatei ab (JSON) oder fügen Sie den Inhalt ein. Es werden keine Daten an Dritte
-        gesendet — nur eine Abfrage auf derselben Seite bei <code className="rounded bg-stone-200 px-1">/api/verify</code>
-        .
+        Legen Sie die Bescheinigungsdatei ab (JSON), ein Foto des Anmelde-QR-Codes (PNG/JPEG/WebP), oder fügen
+        Sie den JSON-Inhalt ein. Es werden keine Daten an Dritte gesendet — nur eine Abfrage auf derselben Seite bei{" "}
+        <code className="rounded bg-stone-200 px-1">/api/verify</code>.
       </p>
 
       <div
@@ -60,10 +100,10 @@ export function VerifyDrop(): React.ReactElement {
         }}
       >
         <label className="cursor-pointer">
-          <span className="font-medium text-sky-800">JSON-Datei auswählen</span>
+          <span className="font-medium text-sky-800">Datei auswählen</span>
           <input
             type="file"
-            accept="application/json,.json"
+            accept={VERIFY_FILE_ACCEPT_ATTR}
             className="sr-only"
             onChange={(ev) => {
               const f = ev.target.files?.[0];

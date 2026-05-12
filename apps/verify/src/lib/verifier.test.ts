@@ -92,12 +92,12 @@ describe("verify()", () => {
         fetch: mockFetchJson(200, { valid: true }),
       },
     );
-    expect(res).toEqual({
-      kind: "valid",
-      certificate: expect.objectContaining({ cert_id: certId }) as unknown,
-      online: "no_revocation_on_file",
-      offline: true,
-    });
+    expect(res.kind).toBe("valid");
+    if (res.kind === "valid") {
+      expect(res.certificate.cert_id).toBe(certId);
+      expect(res.online).toBe("no_revocation_on_file");
+      expect(res.offline).toBe(true);
+    }
   });
 
   test("json: valid offline + online skipped when apiBaseUrl omitted", async () => {
@@ -181,10 +181,10 @@ describe("verify()", () => {
 
   test("json: offline ok + verify endpoint 404 -> id_unknown", async () => {
     const { raw, certId } = await mintRawCertificate();
-    const fetch404: typeof fetch = (url) => {
+    const fetch404 = ((url: URL | RequestInfo) => {
       expect(String(url)).toContain(certId);
       return Promise.resolve(new Response("", { status: 404 }));
-    };
+    }) as typeof fetch;
     const res = await verify({ kind: "json", raw, apiBaseUrl: "" }, { fetch: fetch404 });
     expect(res).toEqual({ kind: "unknown", reason: "id_unknown" });
   });
