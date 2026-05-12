@@ -41,7 +41,7 @@ RUN composer install \
     --no-progress
 
 # ── Runtime: nginx + PHP-FPM ─────────────────────────────────────────────
-FROM php:8.4-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 RUN apk add --no-cache nginx bash wget \
     && apk add --no-cache libstdc++ \
