@@ -11,6 +11,50 @@
  */
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+
+const TUTOR_RECENTS_KEY = "tutor_recents_v1";
+
+interface RecentSession {
+  course_id: string;
+  course_title: string;
+  enroll_url: string;
+  created_at: string;
+}
+
+function pushRecentSession(entry: RecentSession): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    const w = window;
+    const prev = w.sessionStorage.getItem(TUTOR_RECENTS_KEY);
+    const list: RecentSession[] = prev ? (JSON.parse(prev) as RecentSession[]) : [];
+    const deduped = list.filter((x) => x.enroll_url !== entry.enroll_url);
+    const next = [entry, ...deduped].slice(0, 5);
+    w.sessionStorage.setItem(TUTOR_RECENTS_KEY, JSON.stringify(next));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function readRecentSessions(): RecentSession[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+  try {
+    const raw = window.sessionStorage.getItem(TUTOR_RECENTS_KEY);
+    if (raw === null) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed as RecentSession[];
+  } catch {
+    return [];
+  }
+}
 import { ready as cryptoReady } from "@bastiion/crypto";
 import { Link } from "../Link.tsx";
 import { useKeyVault } from "../KeyVault.tsx";
@@ -79,12 +123,17 @@ export function CreateSession() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CreateSessionResult | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const [recents, setRecents] = useState<RecentSession[]>(() => readRecentSessions());
 
   useEffect(() => {
     if (config !== null && serverKey.status === "idle") {
       void refreshServerKey();
     }
   }, [config, serverKey, refreshServerKey]);
+
+  useEffect(() => {
+    setRecents(readRecentSessions());
+  }, [result]);
 
   const canSubmit = useMemo(
     () =>
@@ -158,6 +207,12 @@ export function CreateSession() {
         course_id: payload.course_id,
         enroll_url: payload.enroll_url,
         credential,
+      });
+      pushRecentSession({
+        course_id: payload.course_id,
+        course_title: form.courseTitle.trim(),
+        enroll_url: payload.enroll_url,
+        created_at: new Date().toISOString(),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler.");
@@ -236,6 +291,24 @@ export function CreateSession() {
           Es ist kein K_master geladen. Bitte zuerst{" "}
           <Link to="keys">Schlüssel verwalten</Link>.
         </p>
+      ) : null}
+
+      {recents.length > 0 ? (
+        <aside
+          className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-sm"
+          data-cy="session-recents"
+        >
+          <h2 className="text-sm font-semibold text-stone-800">Letzte Sitzungen</h2>
+          <ul className="mt-2 space-y-2 text-sm text-stone-700">
+            {recents.map((r) => (
+              <li key={r.enroll_url} className="border-b border-stone-100 pb-2 last:border-0">
+                <div className="font-medium text-stone-900">{r.course_title}</div>
+                <div className="font-mono text-xs text-stone-600 break-all">{r.enroll_url}</div>
+                <div className="text-xs text-stone-500">{r.created_at}</div>
+              </li>
+            ))}
+          </ul>
+        </aside>
       ) : null}
 
       <form

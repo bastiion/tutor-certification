@@ -14,7 +14,7 @@ import { KeyVaultProvider } from "./src/KeyVault.tsx";
 import { Link } from "./src/Link.tsx";
 import { ServerConfigProvider } from "./src/ServerConfig.tsx";
 import { ServerConfigPanel } from "./src/ServerConfigPanel.tsx";
-import { AuditPlaceholder } from "./src/pages/AuditPlaceholder.tsx";
+import { Audit } from "./src/pages/Audit.tsx";
 import { CreateSession } from "./src/pages/CreateSession.tsx";
 import { Home } from "./src/pages/Home.tsx";
 import { Keys } from "./src/pages/Keys.tsx";
@@ -47,7 +47,7 @@ function CurrentPage() {
     case "print":
       return <PrintList />;
     case "audit":
-      return <AuditPlaceholder />;
+      return <Audit />;
     case "404":
       return <NotFound />;
   }

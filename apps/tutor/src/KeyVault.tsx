@@ -7,7 +7,9 @@
  *   store's `revision` changes. The seed itself is **never** placed in React
  *   state — components call `store.exportSeed()` only at sign time.
  *
- * No code path here writes to `localStorage`/`sessionStorage`/`indexedDB`.
+ * No production code path writes K_master material to browser storage APIs.
+ * End-to-end tests may stash a **one-shot** base64url-encoded 32-byte blob under
+ * {@link TUTOR_E2E_KM_B64URL_KEY}; it is consumed and removed on startup.
  */
 
 import {
@@ -20,6 +22,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { base64urlDecode, ready as cryptoReady } from "@bastiion/crypto";
+import { TUTOR_E2E_KM_B64URL_KEY } from "./lib/e2eKeyPrefill.ts";
 import {
   createKeyVaultStore,
   type KeyVaultSnapshot,
@@ -50,6 +54,43 @@ export function KeyVaultProvider({ children, store }: KeyVaultProviderProps) {
 
   useEffect(() => {
     return stableStore.subscribe(setSnapshot);
+  }, [stableStore]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.sessionStorage === "undefined") {
+      return;
+    }
+    const raw = window.sessionStorage.getItem(TUTOR_E2E_KM_B64URL_KEY);
+    if (raw === null || raw === "") {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      await cryptoReady();
+      if (cancelled) {
+        return;
+      }
+      let bytes: Uint8Array;
+      try {
+        bytes = base64urlDecode(raw);
+      } catch {
+        window.sessionStorage.removeItem(TUTOR_E2E_KM_B64URL_KEY);
+        return;
+      }
+      if (bytes.length !== 32) {
+        window.sessionStorage.removeItem(TUTOR_E2E_KM_B64URL_KEY);
+        return;
+      }
+      try {
+        stableStore.importSeed(bytes);
+      } finally {
+        bytes.fill(0);
+        window.sessionStorage.removeItem(TUTOR_E2E_KM_B64URL_KEY);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [stableStore]);
 
   const value = useMemo<KeyVaultContextValue>(
