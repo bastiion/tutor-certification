@@ -24,6 +24,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 .direnv
 doc/plan/stages
+doc/implementation
 
 # Nix
 result
