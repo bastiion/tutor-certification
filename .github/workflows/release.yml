@@ -43,24 +43,38 @@ jobs:
       - name: Smoke test container
         run: |
           set -euo pipefail
-          cid=$(docker run -d -p "${SMOKE_PORT}:8080" "${IMAGE_NAME}:build")
+          # PHPUnit fixture vars (committed test vectors) — Slim needs full env even for GET probes.
+          cat <<'EOF' >/tmp/smoke-prod.env
+          SERVER_BOX_KEYPAIR_BASE64=VwF3nZYCiwSLPd4McmJnuL-AcvVTmTkCUigrt_smwfkAY5pYm8Pzh6IFKbqAGRyaNOb7rrE-r4mgbZsz7pzuSg
+          TOKEN_HMAC_KEY_BASE64=tjJGAH7zBwPU8jimGYL7S-EP9ssVlhuXNUehaxy6ZJk
+          TUTOR_API_TOKEN=d471ffdacb4a62518e006e535878a8669d9134aa03c7ada6378e79a538f13ce2
+          TUTOR_EMAIL=tutor@example.test
+          PUBLIC_BASE_URL=http://localhost:7123
+          SMTP_HOST=127.0.0.1
+          SMTP_PORT=1
+          MAIL_FROM_ADDRESS=noreply@example.test
+          API_SQLITE_PATH=/tmp/smoke-release.sqlite
+          GIT_SHA=release-smoke
+          EOF
+          cid=$(docker run -d -p "${SMOKE_PORT}:8080" --env-file /tmp/smoke-prod.env "${IMAGE_NAME}:build")
+          rm -f /tmp/smoke-prod.env
           cleanup() { docker rm -f "$cid" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
 
           for i in $(seq 1 60); do
-            if curl -fsS "http://127.0.0.1:${SMOKE_PORT}/" >/dev/null 2>&1; then
+            if curl -fsS "http://127.0.0.1:${SMOKE_PORT}/api/health" >/dev/null 2>&1; then
               break
             fi
             if [[ "$i" -eq 60 ]]; then
-              echo "::error::Container did not become ready on /"
+              echo "::error::Container did not become ready on /api/health"
               docker logs "$cid" 2>&1 | tail -200 || true
               exit 1
             fi
             sleep 1
           done
 
-          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/" \
-            | python3 -c 'import json,sys; assert json.load(sys.stdin).get("ok") is True'
+          curl -fsS "http://127.0.0.1:${SMOKE_PORT}/api/health" \
+            | python3 -c 'import json,sys; j=json.load(sys.stdin); assert j.get("ok") is True'
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/tutor/" >/dev/null
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/enroll/" >/dev/null
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/verify/" >/dev/null
@@ -88,6 +102,7 @@ jobs:
           generate_release_notes: true
           files: |
             deploy/docker-compose.traefik.yml
+            deploy/docker-compose.direct.yml
             deploy/.env.example
             deploy/README.md
 
@@ -96,5 +111,5 @@ jobs:
           {
             echo "## Release"
             echo "- Image **${IMAGE_NAME}:${GITHUB_REF_NAME}** (also **latest**)"
-            echo "- Assets: Traefik compose, \`.env.example\`, deploy README"
+            echo "- Assets: Traefik + direct compose, \`.env.example\`, deploy README"
           } >>"${GITHUB_STEP_SUMMARY}"
