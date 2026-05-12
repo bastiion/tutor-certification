@@ -65,4 +65,72 @@ describe('SlimApplicationFactory', function (): void {
             $_ENV['PUBLIC_BASE_URL'] = $origPub;
         }
     });
+
+    test('throws when SMTP_USER is set without SMTP_PASSWORD', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-slim-smtp-user-');
+        if ($sqlite === false) {
+            throw new \RuntimeException('tempnam failed');
+        }
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        $prevUser = getenv('SMTP_USER');
+        $prevPass = getenv('SMTP_PASSWORD');
+        putenv('SMTP_USER=u@example.test');
+        $_ENV['SMTP_USER'] = 'u@example.test';
+        putenv('SMTP_PASSWORD');
+        unset($_ENV['SMTP_PASSWORD']);
+
+        try {
+            expect(fn (): \Slim\App => SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 3)))
+                ->toThrow(\RuntimeException::class, 'SMTP_USER and SMTP_PASSWORD');
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+            if ($prevUser !== false) {
+                putenv('SMTP_USER=' . $prevUser);
+                $_ENV['SMTP_USER'] = $prevUser;
+            } else {
+                putenv('SMTP_USER');
+                unset($_ENV['SMTP_USER']);
+            }
+            if ($prevPass !== false) {
+                putenv('SMTP_PASSWORD=' . $prevPass);
+                $_ENV['SMTP_PASSWORD'] = $prevPass;
+            } else {
+                putenv('SMTP_PASSWORD');
+                unset($_ENV['SMTP_PASSWORD']);
+            }
+        }
+    });
+
+    test('throws when SMTP_SECURE is not empty, tls, or ssl', function (): void {
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-slim-smtp-sec-');
+        if ($sqlite === false) {
+            throw new \RuntimeException('tempnam failed');
+        }
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        $prev = getenv('SMTP_SECURE');
+        putenv('SMTP_SECURE=starttls');
+        $_ENV['SMTP_SECURE'] = 'starttls';
+
+        try {
+            expect(fn (): \Slim\App => SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 3)))
+                ->toThrow(\RuntimeException::class, 'SMTP_SECURE');
+        } finally {
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+            if ($prev !== false) {
+                putenv('SMTP_SECURE=' . $prev);
+                $_ENV['SMTP_SECURE'] = $prev;
+            } else {
+                putenv('SMTP_SECURE');
+                unset($_ENV['SMTP_SECURE']);
+            }
+        }
+    });
 });

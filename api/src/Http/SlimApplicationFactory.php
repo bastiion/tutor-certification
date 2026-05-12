@@ -43,7 +43,34 @@ final class SlimApplicationFactory
         $smtpPort = Env::int('SMTP_PORT');
         $fromAddrEnv = Env::stringOrNull('MAIL_FROM_ADDRESS');
         $fromAddr = is_string($fromAddrEnv) && $fromAddrEnv !== '' ? $fromAddrEnv : 'noreply@example.test';
-        $mailer = new CertificateMailer($smtpHost, $smtpPort, $fromAddr);
+
+        $smtpUserRaw = Env::stringOrNull('SMTP_USER');
+        $smtpPassRaw = Env::stringOrNull('SMTP_PASSWORD');
+        $hasUser = is_string($smtpUserRaw) && $smtpUserRaw !== '';
+        $hasPass = is_string($smtpPassRaw) && $smtpPassRaw !== '';
+        if ($hasUser !== $hasPass) {
+            throw new \RuntimeException('SMTP_USER and SMTP_PASSWORD must both be set or both empty');
+        }
+
+        $smtpSecureRaw = Env::stringOrNull('SMTP_SECURE');
+        $smtpSecure = '';
+        if (is_string($smtpSecureRaw) && trim($smtpSecureRaw) !== '') {
+            $low = strtolower(trim($smtpSecureRaw));
+            if ($low !== 'tls' && $low !== 'ssl') {
+                throw new \RuntimeException('SMTP_SECURE must be empty, tls, or ssl');
+            }
+            $smtpSecure = $low;
+        }
+
+        $mailer = new CertificateMailer(
+            $smtpHost,
+            $smtpPort,
+            $fromAddr,
+            'Teilnahmebescheinigungen',
+            $hasUser ? $smtpUserRaw : null,
+            $hasPass ? $smtpPassRaw : null,
+            $smtpSecure,
+        );
 
         $box = Env::base64UrlDecode('SERVER_BOX_KEYPAIR_BASE64');
         if (strlen($box) !== SODIUM_CRYPTO_BOX_SECRETKEYBYTES + SODIUM_CRYPTO_BOX_PUBLICKEYBYTES) {

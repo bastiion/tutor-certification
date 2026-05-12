@@ -14,6 +14,9 @@ final class CertificateMailer
         private readonly int $smtpPort,
         private readonly string $fromAddress,
         private readonly string $fromName = 'Teilnahmebescheinigungen',
+        private readonly ?string $smtpUsername = null,
+        private readonly ?string $smtpPassword = null,
+        private readonly string $smtpSecure = '',
     ) {}
 
     /** @throws \PHPMailer\PHPMailer\Exception */
@@ -21,10 +24,8 @@ final class CertificateMailer
     {
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = $this->smtpHost;
-        $mail->Port = $this->smtpPort;
-        $mail->SMTPAutoTLS = false;
-        $mail->SMTPAuth = false;
+        $this->applySmtpTransport($mail);
+
         $mail->CharSet = PHPMailer::CHARSET_UTF8;
 
         $mail->setFrom($this->fromAddress, $this->fromName);
@@ -62,5 +63,32 @@ HTML;
         $mail->addStringAttachment($jsonAttachment, $fileName, 'base64', 'application/json');
 
         $mail->send();
+    }
+
+    private function applySmtpTransport(PHPMailer $mail): void
+    {
+        $mail->Host = $this->smtpHost;
+        $mail->Port = $this->smtpPort;
+
+        $secure = $this->smtpSecure;
+        if ($secure === 'tls') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPAutoTLS = true;
+        } elseif ($secure === 'ssl') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->SMTPAutoTLS = false;
+        } else {
+            $mail->SMTPSecure = '';
+            $mail->SMTPAutoTLS = false;
+        }
+
+        $user = $this->smtpUsername ?? '';
+        $pass = $this->smtpPassword ?? '';
+        $useAuth = $user !== '' && $pass !== '';
+        $mail->SMTPAuth = $useAuth;
+        if ($useAuth) {
+            $mail->Username = $user;
+            $mail->Password = $pass;
+        }
     }
 }
