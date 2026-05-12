@@ -3,6 +3,8 @@
  */
 
 import sodium from "libsodium-wrappers";
+import QRCode from "qrcode";
+import { writeFile } from "node:fs/promises";
 import {
   base64urlEncode,
   boxSeal,
@@ -29,6 +31,8 @@ export interface MintSessionCredentialResult {
   credential: Record<string, unknown>;
   /** Base64 (standard) encoding of 64-byte Ed25519 master secret key (libsodium layout). */
   masterSecretKey64B64: string;
+  /** Base64URL encoding of the 32-byte K_master seed (tutor KeyVault import). */
+  masterSeedBase64Url: string;
 }
 
 export interface SignRevocationOpts {
@@ -126,6 +130,7 @@ export async function mintSessionCredential(
   return {
     credential,
     masterSecretKey64B64: uint8ToStdBase64(masterSk),
+    masterSeedBase64Url: base64urlEncode(masterSeed),
   };
 }
 
@@ -146,4 +151,63 @@ export async function signRevocationDocument(
   const sig = sodium.crypto_sign_detached(msg, sk);
 
   return { signature: base64urlEncode(sig) };
+}
+
+export interface EnrollAsOpts {
+  enrollUrl: string;
+  apiOrigin: string;
+  name: string;
+}
+
+export interface EnrollAsResult {
+  certId: string;
+  certJSON: string;
+}
+
+/** @public Cypress task — POST participant enrollment for a minted session. */
+export async function enrollAs(opts: EnrollAsOpts): Promise<EnrollAsResult> {
+  const parsed = new URL(opts.enrollUrl, opts.apiOrigin);
+  const tokenMatch = parsed.pathname.match(/\/enroll\/(.+)$/);
+  if (tokenMatch?.[1] === undefined) {
+    throw new Error("enroll URL must contain /enroll/<token>");
+  }
+  const tokenOpaque = decodeURIComponent(tokenMatch[1]);
+  const enrollApiUrl = new URL(
+    `/api/enroll/${encodeURIComponent(tokenOpaque)}`,
+    opts.apiOrigin,
+  ).toString();
+  const r = await fetch(enrollApiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ name: opts.name }),
+  });
+  const raw = await r.text();
+  if (!r.ok) {
+    throw new Error(`enroll failed HTTP ${r.status}: ${raw.slice(0, 500)}`);
+  }
+  const body = JSON.parse(raw) as { cert_id?: unknown };
+  if (typeof body.cert_id !== "string") {
+    throw new Error("enroll response missing cert_id");
+  }
+  return { certId: body.cert_id, certJSON: raw };
+}
+
+export interface WriteEnrollmentQrPngOpts {
+  rawCertJson: string;
+  outPath: string;
+}
+
+/** @public Cypress task — PNG of the Stage-4 QR payload (base64url UTF-8 cert body). */
+export async function writeEnrollmentQrPng(opts: WriteEnrollmentQrPngOpts): Promise<void> {
+  const payload = base64urlEncode(new TextEncoder().encode(opts.rawCertJson));
+  const buf = await QRCode.toBuffer(payload, {
+    type: "png",
+    width: 600,
+    margin: 2,
+    errorCorrectionLevel: "L",
+  });
+  await writeFile(opts.outPath, buf);
 }

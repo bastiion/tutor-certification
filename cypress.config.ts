@@ -1,5 +1,10 @@
 import { defineConfig } from "cypress";
-import { mintSessionCredential, signRevocationDocument } from "./e2e/support/tasks/apiCryptoTasks.bundle.mjs";
+import {
+  enrollAs,
+  mintSessionCredential,
+  signRevocationDocument,
+  writeEnrollmentQrPng,
+} from "./e2e/support/tasks/apiCryptoTasks.bundle.mjs";
 
 const baseUrl =
   process.env.CYPRESS_BASE_URL && process.env.CYPRESS_BASE_URL.trim() !== ""
@@ -23,6 +28,12 @@ export default defineConfig({
         },
         signRevocationDocument(opts) {
           return signRevocationDocument(opts);
+        },
+        enrollAs(opts) {
+          return enrollAs(opts);
+        },
+        writeEnrollmentQrPng(opts) {
+          return writeEnrollmentQrPng(opts);
         },
       });
     },

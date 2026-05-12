@@ -47,6 +47,13 @@ describe("verify SPA — offline drop (compose stack)", () => {
           cy.get("[data-cy=status-valid]").should("be.visible");
           cy.get("[data-cy=chip-online-no-revocation]").should("be.visible");
 
+          cy.task("writeEnrollmentQrPng", {
+            rawCertJson: rawBody,
+            outPath: "e2e/.tmp-verify-qr.png",
+          });
+          cy.get("[data-cy=drop-zone] input[type=file]").selectFile("e2e/.tmp-verify-qr.png", { force: true });
+          cy.get("[data-cy=status-valid]").should("be.visible");
+
           const flipFirstSigChar = (field: "certificate_sig" | "session_sig", raw: string): string => {
             const re =
               field === "certificate_sig"
