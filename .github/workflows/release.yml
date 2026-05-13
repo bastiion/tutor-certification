@@ -38,7 +38,11 @@ jobs:
 
       - name: Build production image
         run: |
-          docker build -f docker/production/Dockerfile -t "${IMAGE_NAME}:build" .
+          docker build \
+            --build-arg "APP_VERSION=${GITHUB_REF_NAME}" \
+            -f docker/production/Dockerfile \
+            -t "${IMAGE_NAME}:build" \
+            .
 
       - name: Smoke test container
         run: |
@@ -55,6 +59,7 @@ jobs:
           MAIL_FROM_ADDRESS=noreply@example.test
           API_SQLITE_PATH=/tmp/smoke-release.sqlite
           GIT_SHA=release-smoke
+          APP_VERSION=e2e-smoke
           EOF
           cid=$(docker run -d -p "${SMOKE_PORT}:8080" --env-file /tmp/smoke-prod.env "${IMAGE_NAME}:build")
           rm -f /tmp/smoke-prod.env
@@ -74,7 +79,7 @@ jobs:
           done
 
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/api/health" \
-            | python3 -c 'import json,sys; j=json.load(sys.stdin); assert j.get("ok") is True'
+            | python3 -c 'import json,sys; j=json.load(sys.stdin); assert j.get("ok") is True; assert j.get("schema_versions") == {"certificate": 1, "revocation": 1}; assert j.get("app_version") == "e2e-smoke"'
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/tutor/" >/dev/null
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/enroll/" >/dev/null
           curl -fsS "http://127.0.0.1:${SMOKE_PORT}/verify/" >/dev/null

@@ -6,6 +6,8 @@
 # ── Frontend (Bun workspaces) ─────────────────────────────────────────────
 FROM oven/bun:1.3-alpine AS frontend
 
+ARG APP_VERSION=dev
+
 WORKDIR /app
 
 # Cache-friendly install
@@ -15,7 +17,7 @@ COPY packages ./packages
 COPY scripts ./scripts
 COPY build.ts server.ts tsconfig.json ./
 
-RUN bun install --frozen-lockfile && bun run build:compose
+RUN bun install --frozen-lockfile && APP_VERSION=${APP_VERSION} bun run build:compose
 
 # CLI: production `.env` wizard (single static binary for `docker run ... env-wizard`)
 RUN bun build apps/env-wizard/src/main.ts --compile --outfile /app/env-wizard-bin \

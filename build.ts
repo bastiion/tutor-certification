@@ -160,7 +160,9 @@ for (const app of apps) {
     target: "browser",
     sourcemap: "linked",
     define: {
+      ...(buildOverrides.define as Record<string, string> | undefined),
       "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.APP_VERSION": JSON.stringify(process.env.APP_VERSION ?? "dev"),
     },
   });
 

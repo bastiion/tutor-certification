@@ -26,6 +26,11 @@ export { keypairFromSeed, signDetached, verifyDetached } from "./ed25519.ts";
 
 export { boxSeal, boxSealOpen } from "./sealedBox.ts";
 
+export {
+  CURRENT_CERT_SCHEMA_VERSION,
+  CURRENT_REVOCATION_SCHEMA_VERSION,
+} from "./schemaVersion.ts";
+
 /** libsodium has finished loading; {@link cryptoPackageStatus} then exposes a version string. */
 
 export interface PackageStatus {

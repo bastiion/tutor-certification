@@ -1,10 +1,12 @@
 import { defineConfig } from "cypress";
 import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 import {
   enrollAs,
   mintSessionCredential,
+  qrCertPayload as taskQrCertPayload,
   signRevocationDocument,
-  writeEnrollmentQrPng,
+  writeEnrollmentQrPng as taskWriteEnrollmentQrPng,
 } from "./e2e/support/tasks/apiCryptoTasks.bundle.mjs";
 
 const baseUrl =
@@ -40,13 +42,17 @@ export default defineConfig({
         enrollAs(opts) {
           return enrollAs(opts);
         },
-        writeEnrollmentQrPng(opts) {
-          return writeEnrollmentQrPng(opts);
+        async writeEnrollmentQrPng(opts) {
+          await taskWriteEnrollmentQrPng(opts);
+          return null;
+        },
+        qrCertPayload(opts) {
+          return Promise.resolve(taskQrCertPayload(opts));
         },
         async assertScreenshotsExist(expectedNames) {
           const dir = isDocMode
-            ? "cypress/screenshots/doc/doc-screenshots.cy.ts"
-            : "cypress/screenshots";
+            ? join(process.cwd(), "cypress/screenshots/doc/doc-screenshots.cy.ts")
+            : join(process.cwd(), "cypress/screenshots/doc-screenshots.cy.ts");
           let files;
           try {
             files = await readdir(dir);
