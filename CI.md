@@ -117,7 +117,7 @@ nix develop -c bun run analyse:backend
   5. **HTTP smoke**: `curl` loop on `http://127.0.0.1:7123` for:
      - `/`, `/dev/`, `/info.php`, `/tutor/`, `/enroll/`, `/verify/`, `/coverage/`
   6. **Cypress**: [`cypress-io/github-action@v6`](https://github.com/cypress-io/github-action) with **Chrome**, `install: false`, command `bun run cypress:compose`  
-     → sets `CYPRESS_BASE_URL=http://localhost:7123` (see [`package.json`](package.json)); specs are path-only ([`cypress.config.cjs`](cypress.config.cjs)).
+     → sets `CYPRESS_BASE_URL=http://localhost:7123` (see [`package.json`](package.json)); specs are path-only ([`cypress.config.mjs`](cypress.config.mjs)).
   7. **Teardown**: `docker compose down --volumes` (always, even on failure).
 
 **Local equivalent**

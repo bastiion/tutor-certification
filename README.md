@@ -130,7 +130,7 @@ Coverage artifacts (when generated): [`api/coverage/html`](api/coverage) and `ap
 
 ### End-to-end tests (Cypress)
 
-[`cypress.config.ts`](cypress.config.ts) sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, default **`http://localhost:3000`**. Specs use path-only URLs (e.g. **`/tutor/`**) so the same tests run against **Bun dev** or **Docker nginx + static build**.
+[`cypress.config.mjs`](cypress.config.mjs) sets **`baseUrl`** from **`CYPRESS_BASE_URL`**, default **`http://localhost:3000`**. Specs use path-only URLs (e.g. **`/tutor/`**) so the same tests run against **Bun dev** or **Docker nginx + static build**.
 
 | Target | When | Command (examples) |
 |--------|------|---------------------|

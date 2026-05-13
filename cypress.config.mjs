@@ -1,6 +1,5 @@
 import { defineConfig } from "cypress";
 import { readdir } from "node:fs/promises";
-import { join } from "node:path";
 import {
   enrollAs,
   mintSessionCredential,
@@ -44,11 +43,11 @@ export default defineConfig({
         writeEnrollmentQrPng(opts) {
           return writeEnrollmentQrPng(opts);
         },
-        async assertScreenshotsExist(expectedNames: string[]) {
+        async assertScreenshotsExist(expectedNames) {
           const dir = isDocMode
             ? "cypress/screenshots/doc/doc-screenshots.cy.ts"
             : "cypress/screenshots";
-          let files: string[];
+          let files;
           try {
             files = await readdir(dir);
           } catch {
