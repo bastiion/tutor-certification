@@ -73,7 +73,7 @@ describe("tutor: key onboarding + session creation", () => {
     cy.get("[data-cy=session-course-id]").should("be.visible").clear().type(courseId);
     cy.get("[data-cy=session-course-title]").clear().type("Stage 3 E2E Kurs");
     cy.get("[data-cy=session-institute]").clear().type("Example Institute");
-    cy.get("[data-cy=session-email]").clear().type("tutor@example.test");
+    cy.get("[data-cy=session-tutor-email-input]").clear().type("tutor@example.test");
 
     cy.get("[data-cy=session-submit]").should("not.be.disabled").click();
 

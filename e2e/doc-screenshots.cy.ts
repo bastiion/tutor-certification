@@ -95,7 +95,7 @@ describe("doc-screenshots — customer documentation captures", () => {
       cy.get("[data-cy=session-course-id]").should("be.visible").clear().type(runId);
       cy.get("[data-cy=session-course-title]").clear().type(DOC_DEMO.courseTitle);
       cy.get("[data-cy=session-institute]").clear().type(DOC_DEMO.instituteName);
-      cy.get("[data-cy=session-email]").clear().type(DOC_DEMO.tutorEmail);
+      cy.get("[data-cy=session-tutor-email-input]").clear().type(DOC_DEMO.tutorEmail);
       shot("tutor-05-create-session-form");
 
       // Submit session

@@ -21,6 +21,11 @@ export interface MintSessionCredentialOpts {
   courseId?: string;
   validUntilUnix?: number;
   /**
+   * Passed through as credential `tutor_email` — required server-side SessionCredential field.
+   * Defaults to distinct `session-owner@example.test` (differs from typical `docker/php/dev.env` backup).
+   */
+  tutorEmail?: string;
+  /**
    * Convenience: `validUntilUnix = floor(now/1000) + offset`.
    * Ignored when `validUntilUnix` is provided explicitly.
    */
@@ -114,12 +119,18 @@ export async function mintSessionCredential(
   const serverPk = serverBoxPublicKeyFromEnv();
   const enc = await boxSeal(courseKp.secretKey, serverPk);
 
+  const tutorEmail =
+    typeof opts.tutorEmail === "string" && opts.tutorEmail.trim() !== ""
+      ? opts.tutorEmail.trim()
+      : "session-owner@example.test";
+
   const credential: Record<string, unknown> = {
     course_id: courseId,
     valid_until: validUntilUnix,
     course_title: "E2E Kurs",
     course_date: "2026-05-11",
     institute_name: "Example Institute",
+    tutor_email: tutorEmail,
     K_master_public: base64urlEncode(masterPk),
     K_course_public: base64urlEncode(courseKp.publicKey),
     K_master_public_fingerprint: masterPublicFingerprintHex(masterPk),
@@ -200,9 +211,14 @@ export interface WriteEnrollmentQrPngOpts {
   outPath: string;
 }
 
+/** @public — base64url(UTF‑8(cert JSON)); used for `/verify/#cert=` and legacy raw QR payloads. */
+export function qrCertPayload(opts: { rawCertJson: string }): string {
+  return base64urlEncode(new TextEncoder().encode(opts.rawCertJson));
+}
+
 /** @public Cypress task — PNG of the Stage-4 QR payload (base64url UTF-8 cert body). */
 export async function writeEnrollmentQrPng(opts: WriteEnrollmentQrPngOpts): Promise<void> {
-  const payload = base64urlEncode(new TextEncoder().encode(opts.rawCertJson));
+  const payload = qrCertPayload({ rawCertJson: opts.rawCertJson });
   const buf = await QRCode.toBuffer(payload, {
     type: "png",
     width: 600,

@@ -54,6 +54,12 @@ describe("verify SPA — offline drop (compose stack)", () => {
           cy.get("[data-cy=drop-zone] input[type=file]").selectFile("e2e/.tmp-verify-qr.png", { force: true });
           cy.get("[data-cy=status-valid]").should("be.visible");
 
+          cy.task<string>("qrCertPayload", { rawCertJson: rawBody }).then((frag) => {
+            cy.visit(`/verify/#cert=${frag}`);
+            cy.get("[data-cy=status-valid]", { timeout: 20_000 }).should("be.visible");
+          });
+
+          cy.visit("/verify/");
           const flipFirstSigChar = (field: "certificate_sig" | "session_sig", raw: string): string => {
             const re =
               field === "certificate_sig"
@@ -93,6 +99,7 @@ describe("verify SPA — offline drop (compose stack)", () => {
               url: "/api/revocations",
               headers: { Authorization: `Bearer ${bearer}` },
               body: {
+                schema_version: 1,
                 cert_id: certId,
                 revoked_at: revokedAt,
                 reason: "cypress verify-offline",

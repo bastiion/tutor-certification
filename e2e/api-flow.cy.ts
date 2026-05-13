@@ -63,6 +63,7 @@ describe("backend API flow (docker compose)", () => {
               url: "/api/revocations",
               headers: { Authorization: `Bearer ${bearer}` },
               body: {
+                schema_version: 1,
                 cert_id: certId,
                 revoked_at: revokedAt,
                 reason: "cypress api-flow",
