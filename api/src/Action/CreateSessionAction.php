@@ -39,7 +39,6 @@ final readonly class CreateSessionAction
         private Signer $signer,
         private Tokens $tokens,
         private string $publicBaseUrl,
-        private string $tutorEmail,
     ) {}
 
     /** @param array<string,mixed> $args */
@@ -79,7 +78,7 @@ final readonly class CreateSessionAction
         }
 
         try {
-            $this->sessions->insert($cred, $this->tutorEmail);
+            $this->sessions->insert($cred);
         } catch (\RuntimeException $e) {
             if (str_contains($e->getMessage(), 'already exists')) {
                 throw new HttpException($request, 'Session already exists', StatusCodeInterface::STATUS_CONFLICT, $e);

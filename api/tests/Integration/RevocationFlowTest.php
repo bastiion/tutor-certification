@@ -51,6 +51,7 @@ describe('Revocation integration', function (): void {
             'cert_id' => $certId,
             'revoked_at' => $revokedAt,
             'reason' => $reason,
+            'schema_version' => 1,
             'signature' => (new Signer())->base64UrlEncode($sig),
         ];
 

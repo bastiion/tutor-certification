@@ -44,15 +44,19 @@ use Slim\Exception\HttpNotFoundException;
 )]
 final readonly class EnrollAction
 {
-    private const CERT_VERSION = 1;
+    private const CERT_SCHEMA_VERSION = 1;
 
-    /** @param non-empty-string $serverBoxKeypair64 */
+    /**
+     * @param non-empty-string $serverBoxKeypair64
+     * @param non-empty-string $backupTutorEmail env-pinned BCC backup (when distinct from session tutor)
+     */
     public function __construct(
         private Signer $signer,
         private Tokens $tokens,
         private SessionRepository $sessions,
         private CertificateMailer $mail,
         private string $serverBoxKeypair64,
+        private string $backupTutorEmail,
     ) {}
 
     /** @param array<string, mixed> $args */
@@ -136,7 +140,7 @@ final readonly class EnrollAction
 
         $unsigned = new Certificate(
             certId: $certId,
-            version: self::CERT_VERSION,
+            schemaVersion: self::CERT_SCHEMA_VERSION,
             issuedAt: $issuedAt,
             course: [
                 'id' => $sessionRow->courseId,
@@ -159,11 +163,17 @@ final readonly class EnrollAction
         $sig = $this->signer->signDetached($signingBytes, $kCourseSecret64);
         $signed = $unsigned->withCertificateSig($this->signer->base64UrlEncode($sig));
 
+        try {
+            $this->sessions->recordIssuedCertificate($signed->certId, $sessionRow->courseId);
+        } catch (\Throwable $_) {
+            error_log('Failed to persist cert→course mapping for ' . $signed->certId);
+        }
+
         $tutor = $this->sessions->tutorEmailForCourse($sessionRow->courseId);
 
         if (is_string($tutor) && $tutor !== '') {
             try {
-                $this->mail->sendEnrollmentNotification($signed, $tutor);
+                $this->mail->sendEnrollmentNotification($signed, $tutor, $this->backupTutorEmail);
             } catch (\Throwable $mailErr) {
                 error_log('Enrollment mail failed: ' . $mailErr->getMessage());
             }

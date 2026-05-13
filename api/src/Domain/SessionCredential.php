@@ -14,6 +14,7 @@ use OpenApi\Attributes as OA;
         'course_title',
         'course_date',
         'institute_name',
+        'tutor_email',
         'K_master_public',
         'K_course_public',
         'K_master_public_fingerprint',
@@ -31,6 +32,8 @@ final readonly class SessionCredential
         public string $courseTitle,
         public string $courseDate,
         public string $instituteName,
+        #[OA\Property(description: 'Tutor:in delivery address for issuance / revocation mails (To:); env TUTOR_EMAIL is BCC backup when distinct.')]
+        public string $tutorEmail,
         #[OA\Property(description: 'Ed25519 K_master_public, Base64URL no padding')]
         public string $kMasterPublicBase64Url,
         #[OA\Property(description: 'Ed25519 K_course_public, Base64URL no padding')]
@@ -52,6 +55,7 @@ final readonly class SessionCredential
             'course_title' => true,
             'course_date' => true,
             'institute_name' => true,
+            'tutor_email' => true,
             'K_master_public' => true,
             'K_course_public' => true,
             'K_master_public_fingerprint' => true,
@@ -82,15 +86,20 @@ final readonly class SessionCredential
             throw new \InvalidArgumentException('valid_until must be a non-negative integer');
         }
 
-        foreach ([
-            'course_title' => $data['course_title'] ?? null,
-            'course_date' => $data['course_date'] ?? null,
-            'institute_name' => $data['institute_name'] ?? null,
-        ] as $key => $v) {
+        foreach (['course_title', 'course_date', 'institute_name'] as $key) {
+            $v = $data[$key] ?? null;
             if (! is_string($v)) {
                 throw new \InvalidArgumentException($key . ' must be string');
             }
         }
+
+        $tutorEmailRaw = $data['tutor_email'] ?? null;
+        if (! is_string($tutorEmailRaw)) {
+            throw new \InvalidArgumentException('tutor_email must be string');
+        }
+
+        $tutorMail = trim($tutorEmailRaw);
+        self::ensureValidTutorEmail($tutorMail);
 
         foreach ([
             'K_master_public' => $data['K_master_public'] ?? null,
@@ -119,11 +128,27 @@ final readonly class SessionCredential
             courseTitle: (string) $data['course_title'],
             courseDate: (string) $data['course_date'],
             instituteName: (string) $data['institute_name'],
+            tutorEmail: $tutorMail,
             kMasterPublicBase64Url: (string) $data['K_master_public'],
             kCoursePublicBase64Url: (string) $data['K_course_public'],
             kMasterPublicFingerprintHex: $fp,
             sessionSigBase64Url: (string) $data['session_sig'],
             kCoursePrivateEncBase64Url: (string) $data['K_course_private_enc'],
         );
+    }
+
+    private static function ensureValidTutorEmail(string $email): void
+    {
+        if ($email === '') {
+            throw new \InvalidArgumentException('Bitte gültige E-Mail eingeben.');
+        }
+
+        if (! str_contains($email, '@')) {
+            throw new \InvalidArgumentException('Bitte gültige E-Mail eingeben.');
+        }
+
+        if (strlen($email) > 254) {
+            throw new \InvalidArgumentException('Die E-Adresse darf höchstens 254 Zeichen lang sein.');
+        }
     }
 }

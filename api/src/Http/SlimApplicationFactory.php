@@ -78,7 +78,7 @@ final class SlimApplicationFactory
         }
 
         $tutorToken = Env::string('TUTOR_API_TOKEN');
-        $tutorEmail = Env::string('TUTOR_EMAIL');
+        $backupTutorEmail = Env::string('TUTOR_EMAIL');
 
         $publicBase = Env::stringOrNull('PUBLIC_BASE_URL');
         $publicBaseResolved = is_string($publicBase) && rtrim($publicBase, '/') !== ''
@@ -107,10 +107,10 @@ final class SlimApplicationFactory
 
         $health = new HealthAction();
         $serverPk = new ServerPublicKeyAction($signer);
-        $createSession = new CreateSessionAction($sessions, $signer, $tokens, $publicBaseResolved, $tutorEmail);
-        $enroll = new EnrollAction($signer, $tokens, $sessions, $mailer, $box);
+        $enroll = new EnrollAction($signer, $tokens, $sessions, $mailer, $box, $backupTutorEmail);
         $verify = new VerifyAction($revocations);
-        $revoke = new CreateRevocationAction($signer, $revocations, $sessions);
+        $revoke = new CreateRevocationAction($signer, $revocations, $sessions, $mailer, $backupTutorEmail);
+        $createSession = new CreateSessionAction($sessions, $signer, $tokens, $publicBaseResolved);
         $specPath = $apiRootNormalized . '/public/openapi.json';
         $openapi = new OpenApiAction($specPath);
 

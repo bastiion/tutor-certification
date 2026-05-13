@@ -17,6 +17,7 @@ describe('RevocationRepository', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 'test',
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
         ]);
         $repo->insert($doc);
         $found = $repo->findByCertId($doc->certId);
@@ -32,6 +33,7 @@ describe('RevocationRepository', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 'test',
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
         ]);
         $repo->insert($doc);
         expect(fn () => $repo->insert($doc))->toThrow(\RuntimeException::class);

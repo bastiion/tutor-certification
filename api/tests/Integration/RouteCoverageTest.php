@@ -27,9 +27,11 @@ function routeCoverageApiEnrollPath(mixed $sessionBody): string
 }
 
 describe('HTTP route coverage', function (): void {
-    test('GET /api/health returns ok and GIT_SHA when set', function (): void {
-        putenv('GIT_SHA=deadbeef');
-        $_ENV['GIT_SHA'] = 'deadbeef';
+    test('GET /api/health prefers APP_VERSION when set', function (): void {
+        putenv('APP_VERSION=staging-label');
+        $_ENV['APP_VERSION'] = 'staging-label';
+        putenv('GIT_SHA=ignored');
+        $_ENV['GIT_SHA'] = 'ignored';
 
         $sqlite = tempnam(sys_get_temp_dir(), 'api-route-h');
         putenv('API_SQLITE_PATH=' . $sqlite);
@@ -40,8 +42,38 @@ describe('HTTP route coverage', function (): void {
             $res = AppRequest::dispatch($app, 'GET', '/api/health');
             expect($res->getStatusCode())->toBe(200);
             $json = json_decode((string) $res->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            assert(is_array($json));
             expect($json['ok'] ?? null)->toBeTrue();
-            expect($json['build'] ?? null)->toBe('deadbeef');
+            expect($json['app_version'] ?? null)->toBe('staging-label');
+            expect($json['schema_versions'] ?? null)->toBe(['certificate' => 1, 'revocation' => 1]);
+        } finally {
+            putenv('APP_VERSION');
+            unset($_ENV['APP_VERSION']);
+            putenv('GIT_SHA');
+            unset($_ENV['GIT_SHA']);
+            @unlink($sqlite);
+            putenv('API_SQLITE_PATH');
+            unset($_ENV['API_SQLITE_PATH']);
+        }
+    });
+
+    test('GET /api/health falls back to GIT_SHA when APP_VERSION unset', function (): void {
+        putenv('APP_VERSION');
+        unset($_ENV['APP_VERSION']);
+        putenv('GIT_SHA=deadbeef');
+        $_ENV['GIT_SHA'] = 'deadbeef';
+
+        $sqlite = tempnam(sys_get_temp_dir(), 'api-route-h-git');
+        putenv('API_SQLITE_PATH=' . $sqlite);
+        $_ENV['API_SQLITE_PATH'] = $sqlite;
+
+        try {
+            $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
+            $res = AppRequest::dispatch($app, 'GET', '/api/health');
+            expect($res->getStatusCode())->toBe(200);
+            $json = json_decode((string) $res->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            assert(is_array($json));
+            expect($json['app_version'] ?? null)->toBe('deadbeef');
         } finally {
             putenv('GIT_SHA');
             unset($_ENV['GIT_SHA']);
@@ -51,7 +83,9 @@ describe('HTTP route coverage', function (): void {
         }
     });
 
-    test('GET /api/health uses GIT_COMMIT_SHA when GIT_SHA is unset', function (): void {
+    test('GET /api/health uses GIT_COMMIT_SHA when APP_VERSION and GIT_SHA unset', function (): void {
+        putenv('APP_VERSION');
+        unset($_ENV['APP_VERSION']);
         putenv('GIT_SHA');
         unset($_ENV['GIT_SHA']);
         putenv('GIT_COMMIT_SHA=abccommit');
@@ -65,7 +99,8 @@ describe('HTTP route coverage', function (): void {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
             $res = AppRequest::dispatch($app, 'GET', '/api/health');
             $json = json_decode((string) $res->getBody(), true, flags: JSON_THROW_ON_ERROR);
-            expect($json['build'] ?? null)->toBe('abccommit');
+            assert(is_array($json));
+            expect($json['app_version'] ?? null)->toBe('abccommit');
         } finally {
             putenv('GIT_COMMIT_SHA');
             unset($_ENV['GIT_COMMIT_SHA']);
@@ -75,7 +110,9 @@ describe('HTTP route coverage', function (): void {
         }
     });
 
-    test('GET /api/health reports unknown build when no git env is set', function (): void {
+    test('GET /api/health reports unknown when no version env vars', function (): void {
+        putenv('APP_VERSION');
+        unset($_ENV['APP_VERSION']);
         putenv('GIT_SHA');
         unset($_ENV['GIT_SHA']);
         putenv('GIT_COMMIT_SHA');
@@ -89,7 +126,8 @@ describe('HTTP route coverage', function (): void {
             $app = SlimApplicationFactory::fromApiRoot(dirname(__DIR__, 2));
             $res = AppRequest::dispatch($app, 'GET', '/api/health');
             $json = json_decode((string) $res->getBody(), true, flags: JSON_THROW_ON_ERROR);
-            expect($json['build'] ?? null)->toBe('unknown');
+            assert(is_array($json));
+            expect($json['app_version'] ?? null)->toBe('unknown');
         } finally {
             @unlink($sqlite);
             putenv('API_SQLITE_PATH');
@@ -329,6 +367,7 @@ describe('HTTP route coverage', function (): void {
                 'cert_id' => '018f5b2e-4b2a-7000-9000-abcdef123456',
                 'revoked_at' => gmdate('c'),
                 'reason' => 'none',
+                'schema_version' => 1,
                 'signature' => 'aa',
             ]);
 
@@ -364,6 +403,7 @@ describe('HTTP route coverage', function (): void {
                 'cert_id' => '018f5b2e-4b2a-7000-9000-abcdef123456',
                 'revoked_at' => gmdate('c'),
                 'reason' => 'forgery',
+                'schema_version' => 1,
                 'signature' => $foreignSig,
             ]);
 
@@ -477,6 +517,7 @@ describe('HTTP route coverage', function (): void {
                 'cert_id' => '018f5b2e-4b2a-7000-9000-abcdef123456',
                 'revoked_at' => gmdate('c'),
                 'reason' => 'bad sig encoding',
+                'schema_version' => 1,
                 'signature' => '%%%invalid%%%',
             ]);
 
@@ -919,6 +960,7 @@ describe('HTTP route coverage', function (): void {
                 'cert_id' => $certId,
                 'revoked_at' => $revokedAt,
                 'reason' => 'junk-master-row-present',
+                'schema_version' => 1,
                 'signature' => $signer->base64UrlEncode($sig),
             ];
 

@@ -11,10 +11,23 @@ describe('RevocationDocument', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 'fraud',
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
         ]);
 
         expect($doc->signedMessageUtf8())->toBe($doc->certId . $doc->revokedAt);
         expect($doc->toArray()['cert_id'])->toBe($doc->certId);
+        expect($doc->toArray()['schema_version'])->toBe(1);
+    });
+
+    test('rejects schema_version other than 1', function (): void {
+        $base = [
+            'cert_id' => '018f5b2e-4b2a-7000-9000-abcdef123456',
+            'revoked_at' => '2026-05-11T12:00:00Z',
+            'reason' => 'x',
+            'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 2,
+        ];
+        expect(fn () => RevocationDocument::fromArray($base))->toThrow(\InvalidArgumentException::class, 'schema_version');
     });
 
     test('rejects unexpected keys', function (): void {
@@ -23,6 +36,7 @@ describe('RevocationDocument', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 'x',
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
             'extra' => 1,
         ];
         expect(fn () => RevocationDocument::fromArray($base))->toThrow(\InvalidArgumentException::class, 'Unexpected field');
@@ -43,6 +57,7 @@ describe('RevocationDocument', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 'x',
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
         ];
         expect(fn () => RevocationDocument::fromArray($base))->toThrow(\InvalidArgumentException::class, 'cert_id');
     });
@@ -53,6 +68,7 @@ describe('RevocationDocument', function (): void {
             'revoked_at' => '2026-05-11T12:00:00Z',
             'reason' => 99,
             'signature' => sodium_bin2base64(random_bytes(64), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
+            'schema_version' => 1,
         ];
         expect(fn () => RevocationDocument::fromArray($base))->toThrow(\InvalidArgumentException::class, 'reason');
     });

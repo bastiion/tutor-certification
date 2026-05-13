@@ -16,7 +16,7 @@ final class SessionRepository
         private readonly Signer $signer,
     ) {}
 
-    public function insert(SessionCredential $c, string $tutorEmail): void
+    public function insert(SessionCredential $c): void
     {
         $sql = <<<'SQL'
             INSERT INTO sessions (
@@ -56,7 +56,7 @@ final class SessionRepository
                 ':session_sig' => $c->sessionSigBase64Url,
                 ':k_course_priv_enc' => $c->kCoursePrivateEncBase64Url,
                 ':valid_until' => $c->validUntilUnix,
-                ':tutor_email' => $tutorEmail,
+                ':tutor_email' => $c->tutorEmail,
             ]);
         } catch (PDOException $e) {
             if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'UNIQUE')) {
@@ -70,7 +70,7 @@ final class SessionRepository
     public function findByCourseId(string $courseId): ?SessionCredential
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, course_title, course_date, institute_name, k_master_pub, k_course_pub, session_sig, k_course_priv_enc, valid_until
+            'SELECT id, course_title, course_date, institute_name, tutor_email, k_master_pub, k_course_pub, session_sig, k_course_priv_enc, valid_until
              FROM sessions WHERE id = :id LIMIT 1',
         );
         $stmt->execute([':id' => $courseId]);
@@ -88,12 +88,15 @@ final class SessionRepository
 
         $fp = $this->signer->masterPublicFingerprintHex($masterPk);
 
+        $tutor = (string) $row['tutor_email'];
+
         return new SessionCredential(
             courseId: (string) $row['id'],
             validUntilUnix: (int) $row['valid_until'],
             courseTitle: (string) $row['course_title'],
             courseDate: (string) $row['course_date'],
             instituteName: (string) $row['institute_name'],
+            tutorEmail: $tutor,
             kMasterPublicBase64Url: (string) $row['k_master_pub'],
             kCoursePublicBase64Url: (string) $row['k_course_pub'],
             kMasterPublicFingerprintHex: $fp,
@@ -136,5 +139,30 @@ final class SessionRepository
         }
 
         return $email;
+    }
+
+    public function recordIssuedCertificate(string $certId, string $courseId): void
+    {
+        $sql = <<<'SQL'
+            INSERT INTO issued_certs (cert_id, course_id) VALUES (:cert_id, :course_id)
+            SQL;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':cert_id' => $certId,
+            ':course_id' => $courseId,
+        ]);
+    }
+
+    /** @return non-empty-string|null */
+    public function courseIdForIssuedCert(string $certId): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT course_id FROM issued_certs WHERE cert_id = :id LIMIT 1');
+        $stmt->execute([':id' => $certId]);
+        $raw = $stmt->fetchColumn();
+        if ($raw === false || ! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        return $raw;
     }
 }

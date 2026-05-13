@@ -24,22 +24,29 @@ final class HealthAction
     {
         unset($request, $args);
 
-        $build = getenv('GIT_SHA');
-        $build = is_string($build) && trim($build) !== ''
-            ? trim($build)
-            : (function (): string {
-                $c = getenv('GIT_COMMIT_SHA');
-                if (is_string($c) && trim($c) !== '') {
-                    return trim($c);
-                }
-
-                return 'unknown';
-            })();
-
         return JsonResponder::json($response, [
             'ok' => true,
             'php' => PHP_VERSION,
-            'build' => $build,
+            'app_version' => self::resolveAppVersion(),
+            'schema_versions' => [
+                'certificate' => 1,
+                'revocation' => 1,
+            ],
         ]);
+    }
+
+    private static function resolveAppVersion(): string
+    {
+        foreach (['APP_VERSION', 'GIT_SHA', 'GIT_COMMIT_SHA'] as $key) {
+            $v = getenv($key);
+            if (is_string($v)) {
+                $t = trim($v);
+                if ($t !== '') {
+                    return $t;
+                }
+            }
+        }
+
+        return 'unknown';
     }
 }

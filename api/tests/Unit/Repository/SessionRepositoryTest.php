@@ -19,7 +19,7 @@ describe('SessionRepository', function (): void {
 
         $payload = SessionCredentialFixture::validArray($signer, $box, '018f5b2e-4b2a-7000-9000-abcdef123456', time() + 3600);
         $cred = SessionCredential::fromArray($payload);
-        $repo->insert($cred, 'tutor@example.test');
+        $repo->insert($cred);
 
         $row = $repo->findByCourseId($cred->courseId);
         expect($row)->not->toBeNull()
@@ -33,21 +33,10 @@ describe('SessionRepository', function (): void {
         $box = sodium_crypto_box_keypair();
         $payload = SessionCredentialFixture::validArray($signer, $box, '028f5b2e-4b2a-7000-9000-abcdef123456', time() + 3600);
         $cred = SessionCredential::fromArray($payload);
-        $repo->insert($cred, 'tutor@example.test');
-        expect(fn () => $repo->insert($cred, 'tutor@example.test'))->toThrow(\RuntimeException::class);
+        $repo->insert($cred);
+        expect(fn () => $repo->insert($cred))->toThrow(\RuntimeException::class);
     });
 
-    test('tutorEmailForCourse returns null when tutor_email stored empty', function (): void {
-        $pdo = memorySchemaPdo();
-        $signer = new Signer();
-        $repo = new SessionRepository($pdo, $signer);
-        $box = sodium_crypto_box_keypair();
-        $payload = SessionCredentialFixture::validArray($signer, $box, '048f5b2e-4b2a-7000-9000-abcdef123456', time() + 3600);
-        $cred = SessionCredential::fromArray($payload);
-        $repo->insert($cred, '');
-
-        expect($repo->tutorEmailForCourse($cred->courseId))->toBeNull();
-    });
 });
 
 function memorySchemaPdo(): PDO

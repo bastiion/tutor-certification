@@ -7,6 +7,7 @@ namespace App\Action;
 use App\Crypto\Signer;
 use App\Domain\RevocationDocument;
 use App\Http\JsonResponder;
+use App\Mail\CertificateMailer;
 use App\Repository\RevocationRepository;
 use App\Repository\SessionRepository;
 use Fig\Http\Message\StatusCodeInterface;
@@ -40,6 +41,8 @@ final readonly class CreateRevocationAction
         private Signer $signer,
         private RevocationRepository $revocations,
         private SessionRepository $sessions,
+        private CertificateMailer $mail,
+        private string $backupTutorEmail,
     ) {}
 
     /** @param array<string, mixed> $args */
@@ -97,6 +100,30 @@ final readonly class CreateRevocationAction
             }
 
             throw $e;
+        }
+
+        $courseId = $this->sessions->courseIdForIssuedCert($doc->certId);
+        $to = '';
+        if ($courseId !== null) {
+            $sessionTutor = $this->sessions->tutorEmailForCourse($courseId);
+            if ($sessionTutor !== null) {
+                $to = trim($sessionTutor);
+            }
+        }
+
+        if ($to === '') {
+            $fallback = trim($this->backupTutorEmail);
+            if ($fallback !== '') {
+                $to = $fallback;
+            }
+        }
+
+        if ($to !== '') {
+            try {
+                $this->mail->sendRevocationNotification($doc, $to, $this->backupTutorEmail !== '' ? $this->backupTutorEmail : null);
+            } catch (\Throwable $mailErr) {
+                error_log('Revocation notification mail failed: ' . $mailErr->getMessage());
+            }
         }
 
         return JsonResponder::json($response, ['ok' => true]);

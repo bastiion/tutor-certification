@@ -236,7 +236,7 @@
             "Certificate": {
                 "required": [
                     "cert_id",
-                    "version",
+                    "schema_version",
                     "issued_at",
                     "course",
                     "participant",
@@ -296,7 +296,8 @@
                     "cert_id",
                     "revoked_at",
                     "reason",
-                    "signature"
+                    "signature",
+                    "schema_version"
                 ],
                 "properties": {
                     "certId": {
@@ -317,6 +318,7 @@
                     "course_title",
                     "course_date",
                     "institute_name",
+                    "tutor_email",
                     "K_master_public",
                     "K_course_public",
                     "K_master_public_fingerprint",
@@ -327,6 +329,10 @@
                     "courseId": {
                         "type": "string",
                         "example": "018f5b2e-4b2a-7000-9000-abcdef123456"
+                    },
+                    "tutorEmail": {
+                        "description": "Tutor:in delivery address for issuance / revocation mails (To:); env TUTOR_EMAIL is BCC backup when distinct.",
+                        "type": "string"
                     },
                     "kMasterPublicBase64Url": {
                         "description": "Ed25519 K_master_public, Base64URL no padding",

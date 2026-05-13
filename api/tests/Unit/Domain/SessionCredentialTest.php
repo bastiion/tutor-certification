@@ -11,6 +11,7 @@ describe('SessionCredential', function (): void {
         'course_title' => 'T',
         'course_date' => '2026-01-01',
         'institute_name' => 'I',
+        'tutor_email' => 't@example.test',
         'K_master_public' => sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
         'K_course_public' => sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING),
         'K_master_public_fingerprint' => str_repeat('a', 64),

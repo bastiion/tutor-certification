@@ -8,7 +8,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     schema: 'RevocationDocument',
-    required: ['cert_id', 'revoked_at', 'reason', 'signature']
+    required: ['cert_id', 'revoked_at', 'reason', 'signature', 'schema_version']
 )]
 final readonly class RevocationDocument
 {
@@ -19,6 +19,8 @@ final readonly class RevocationDocument
         public string $reason,
         #[OA\Property(description: 'Detached Ed25519 revocation signature (Base64URL), message = cert_id ‖ revoked_at UTF-8')]
         public string $signatureBase64Url,
+        /** Metadata only — not covered by {@see signedMessageUtf8()}. */
+        public int $schemaVersion = 1,
     ) {}
 
     /** Canonical signed byte string per product concept. */
@@ -35,6 +37,7 @@ final readonly class RevocationDocument
             'revoked_at' => true,
             'reason' => true,
             'signature' => true,
+            'schema_version' => true,
         ];
 
         foreach (array_diff_key($data, $allowed) as $k => $_) {
@@ -51,16 +54,22 @@ final readonly class RevocationDocument
             }
         }
 
+        $sv = $data['schema_version'];
+        if (! is_int($sv) || $sv !== 1) {
+            throw new \InvalidArgumentException('schema_version must be exactly 1');
+        }
+
         return new self(
             certId: (string) $data['cert_id'],
             revokedAt: (string) $data['revoked_at'],
             reason: (string) $data['reason'],
             signatureBase64Url: (string) $data['signature'],
+            schemaVersion: 1,
         );
     }
 
     /**
-     * @return array{cert_id: string, revoked_at: string, reason: string, signature: string}
+     * @return array{cert_id: string, revoked_at: string, reason: string, signature: string, schema_version: int}
      */
     public function toArray(): array
     {
@@ -69,6 +78,7 @@ final readonly class RevocationDocument
             'revoked_at' => $this->revokedAt,
             'reason' => $this->reason,
             'signature' => $this->signatureBase64Url,
+            'schema_version' => $this->schemaVersion,
         ];
     }
 }

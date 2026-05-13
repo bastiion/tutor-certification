@@ -38,7 +38,7 @@ describe('Certificate', function (): void {
 
         $c = new Certificate(
             certId: '058f5b2e-4b2a-7000-9000-abcdef123456',
-            version: 1,
+            schemaVersion: 1,
             issuedAt: '2026-05-11T12:00:00+00:00',
             course: mkCourse(),
             participant: mkParticipant(),
@@ -54,7 +54,7 @@ describe('Certificate', function (): void {
         $blob = json_decode($c->toSigningJson(), true, flags: JSON_THROW_ON_ERROR);
         expect(array_keys($blob))->toBe([
             'cert_id',
-            'version',
+            'schema_version',
             'issued_at',
             'course',
             'participant',
@@ -74,7 +74,7 @@ describe('Certificate', function (): void {
 
         $c = new Certificate(
             certId: '068f5b2e-4b2a-7000-9000-abcdef123456',
-            version: 1,
+            schemaVersion: 1,
             issuedAt: '2026-05-11T12:01:00+00:00',
             course: mkCourse(),
             participant: mkParticipant(),
@@ -94,7 +94,7 @@ describe('Certificate', function (): void {
 
         expect(array_keys($blob))->toBe([
             'cert_id',
-            'version',
+            'schema_version',
             'issued_at',
             'course',
             'participant',
@@ -118,7 +118,7 @@ describe('Certificate', function (): void {
 
         $c = new Certificate(
             certId: '078f5b2e-4b2a-7000-9000-abcdef123456',
-            version: 1,
+            schemaVersion: 1,
             issuedAt: '2026-05-11T12:02:00+00:00',
             course: mkCourse(),
             participant: ['name' => 'Ada', 'email' => 'ada@example.test'],

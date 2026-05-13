@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
     schema: 'Certificate',
     required: [
         'cert_id',
-        'version',
+        'schema_version',
         'issued_at',
         'course',
         'participant',
@@ -32,7 +32,7 @@ final readonly class Certificate
     public function __construct(
         #[OA\Property(format: 'uuid')]
         public string $certId,
-        public int $version,
+        public int $schemaVersion,
         #[OA\Property(example: '2026-05-11T14:28:00+00:00')]
         public string $issuedAt,
         #[OA\Property(properties: [], type: 'object')]
@@ -58,7 +58,7 @@ final readonly class Certificate
     {
         $blob = [
             'cert_id' => $this->certId,
-            'version' => $this->version,
+            'schema_version' => $this->schemaVersion,
             'issued_at' => $this->issuedAt,
             'course' => [
                 'id' => $this->course['id'],
@@ -88,7 +88,7 @@ final readonly class Certificate
     {
         return new self(
             certId: $this->certId,
-            version: $this->version,
+            schemaVersion: $this->schemaVersion,
             issuedAt: $this->issuedAt,
             course: $this->course,
             participant: $this->participant,
@@ -106,7 +106,7 @@ final readonly class Certificate
     {
         $blob = [
             'cert_id' => $this->certId,
-            'version' => $this->version,
+            'schema_version' => $this->schemaVersion,
             'issued_at' => $this->issuedAt,
             'course' => [
                 'id' => $this->course['id'],

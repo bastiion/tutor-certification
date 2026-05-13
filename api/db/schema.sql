@@ -18,3 +18,9 @@ CREATE TABLE IF NOT EXISTS revocations (
     reason      TEXT NOT NULL,
     signature   TEXT NOT NULL
 );
+
+-- Links issued certificate IDs to session (course) row for revocation mail routing.
+CREATE TABLE IF NOT EXISTS issued_certs (
+    cert_id    TEXT PRIMARY KEY,
+    course_id  TEXT NOT NULL
+);
