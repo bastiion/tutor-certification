@@ -57,7 +57,7 @@
   "devDependencies": {
     "@bastiion/crypto": "workspace:*",
     "libsodium-wrappers": "0.7.13",
-    "@types/node": "^22",
+    "@types/node": "^25",
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
