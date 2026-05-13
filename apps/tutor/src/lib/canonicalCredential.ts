@@ -6,6 +6,7 @@
  * accepts on `POST /api/sessions`, including:
  *
  * - `K_master_public` (32-byte Ed25519 key)
+ * - `tutor_email` (**An:** for issuance/revocation mail; env `TUTOR_EMAIL` ist BCC, falls abweichend)
  * - `K_course_public` (derived via HKDF + Ed25519 seed → keypair)
  * - `K_master_public_fingerprint` (BLAKE2b-256 hex of `K_master_public`)
  * - `session_sig` (`course_id ‖ valid_until_be_u64 ‖ K_course_public` signed with `K_master`)
@@ -54,6 +55,7 @@ export interface SessionCredentialJson {
   course_title: string;
   course_date: string;
   institute_name: string;
+  tutor_email: string;
   K_master_public: string;
   K_course_public: string;
   K_master_public_fingerprint: string;
@@ -148,6 +150,7 @@ export async function buildCanonicalSessionCredential(
     course_title: inputs.courseTitle,
     course_date: inputs.courseDate,
     institute_name: inputs.instituteName,
+    tutor_email: inputs.tutorEmail.trim(),
     K_master_public: base64urlEncode(masterKp.publicKey),
     K_course_public: base64urlEncode(courseKp.publicKey),
     K_master_public_fingerprint: masterPublicFingerprintHex(masterKp.publicKey),

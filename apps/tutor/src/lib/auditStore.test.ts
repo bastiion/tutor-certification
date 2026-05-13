@@ -15,7 +15,7 @@ function minimalCert(overrides: Partial<Record<string, unknown>> = {}): {
 } {
   const base = {
     cert_id: "11111111-1111-4111-8111-111111111111",
-    version: 1,
+    schema_version: 1,
     issued_at: "2026-05-11T12:00:00.000Z",
     course: { id: "22222222-2222-4222-8222-222222222222", title: "Kurs A", date: "2026-05-11" },
     participant: { name: "Erika Musterfrau" },

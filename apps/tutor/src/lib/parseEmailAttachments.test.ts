@@ -11,7 +11,7 @@ import { parseInboundJson } from "./parseInboundJson.ts";
 function certJson(): string {
   const c = certificateWireSchema.parse({
     cert_id: "33333333-3333-4333-8333-333333333333",
-    version: 1,
+    schema_version: 1,
     issued_at: "2026-05-11T12:00:00.000Z",
     course: { id: "44444444-4444-4444-8444-444444444444", title: "Mail", date: "2026-05-11" },
     participant: { name: "P" },

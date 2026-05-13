@@ -5,7 +5,7 @@ import { certificateWireSchema } from "@bastiion/verify/src/lib/certificateSchem
 function minimalRaw(): string {
   const c = certificateWireSchema.parse({
     cert_id: "11111111-1111-4111-8111-111111111111",
-    version: 1,
+    schema_version: 1,
     issued_at: "2026-05-11T12:00:00.000Z",
     course: { id: "22222222-2222-4222-8222-222222222222", title: "K", date: "2026-05-11" },
     participant: { name: "A" },

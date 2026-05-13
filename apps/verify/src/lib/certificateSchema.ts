@@ -6,7 +6,7 @@ const iso8601Like = z.string().min(1);
 export const certificateWireSchema = z
   .object({
     cert_id: z.string().uuid(),
-    version: z.literal(1),
+    schema_version: z.literal(1),
     issued_at: iso8601Like,
     course: z
       .object({
@@ -43,6 +43,7 @@ export const revocationDocSchema = z
     revoked_at: z.string().min(1),
     reason: z.string().min(1),
     signature: z.string().min(1),
+    schema_version: z.literal(1),
   })
   .strict();
 

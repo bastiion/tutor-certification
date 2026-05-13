@@ -43,7 +43,7 @@ async function mintRawCertificate(opts?: {
   const certId = crypto.randomUUID();
   const signingObj = {
     cert_id: certId,
-    version: 1 as const,
+    schema_version: 1 as const,
     issued_at: "2026-05-11T12:00:00+00:00",
     course: { id: courseId, title: "K", date: "2026-05-11" },
     participant: { name: "Ada" },
@@ -119,6 +119,7 @@ describe("verify()", () => {
       revoked_at: revokedAt,
       reason: "test",
       signature: base64urlEncode(sig),
+      schema_version: 1,
     };
     const res = await verify(
       { kind: "json", raw, apiBaseUrl: "" },
@@ -141,6 +142,7 @@ describe("verify()", () => {
       revoked_at: revokedAt,
       reason: "test",
       signature: base64urlEncode(new Uint8Array(64).fill(9)),
+      schema_version: 1,
     };
     const res = await verify(
       { kind: "json", raw, apiBaseUrl: "" },
@@ -196,6 +198,7 @@ describe("verify()", () => {
       revoked_at: "2026-05-11T16:00:00.000Z",
       reason: "test",
       signature: "plus+is+invalid",
+      schema_version: 1,
     };
     const res = await verify(
       { kind: "json", raw, apiBaseUrl: "" },
@@ -242,6 +245,7 @@ describe("verify()", () => {
             revoked_at: "2026-05-11T16:00:00.000Z",
             reason: "r",
             signature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            schema_version: 1,
           },
         }),
       },
@@ -283,6 +287,7 @@ describe("verify()", () => {
       revoked_at: revokedAt,
       reason: "test",
       signature: base64urlEncode(sig),
+      schema_version: 1,
     };
     const res = await verify(
       { kind: "json", raw, apiBaseUrl: "" },
@@ -304,7 +309,7 @@ describe("verifyOfflineFromRaw", () => {
   test("rejects invalid base64 material after schema passes", async () => {
     const raw = JSON.stringify({
       cert_id: "00000000-0000-4000-8000-000000000001",
-      version: 1,
+      schema_version: 1,
       issued_at: "2026-05-11T12:00:00+00:00",
       course: { id: "22222222-2222-4222-8222-222222222222", title: "T", date: "2026-05-11" },
       participant: { name: "N" },

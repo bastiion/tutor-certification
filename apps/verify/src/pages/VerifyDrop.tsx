@@ -1,7 +1,11 @@
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import type { VerificationResult } from "../lib/verifier.ts";
 import { verify } from "../lib/verifier.ts";
-import { rawCertificateJsonFromQrPayload, readQrTextFromImageFile } from "../lib/qrImageScan.ts";
+import {
+  coerceVerifyClipboardOrQrText,
+  rawCertificateJsonFromQrPayload,
+} from "../lib/enrollmentQrPayload.ts";
+import { readQrTextFromImageFile } from "../lib/qrImageScan.ts";
 import {
   VERIFY_FILE_ACCEPT_ATTR,
   VERIFY_IMAGE_MAX_BYTES,
@@ -10,11 +14,18 @@ import {
 } from "../lib/verifyInboundMime.ts";
 import { VerificationVerdict } from "../VerificationVerdict.tsx";
 
-export function VerifyDrop(): React.ReactElement {
+export interface VerifyDropProps {
+  /** Direct-open verifier via `/verify/#cert=…`; consumed once at mount */
+  initialCertificateJson?: string | null;
+}
+
+export function VerifyDrop(props: VerifyDropProps): ReactElement {
+  const { initialCertificateJson = null } = props;
   const [raw, setRaw] = useState("");
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hashBootstrapDone = useRef(false);
 
   const runVerify = useCallback((body: string) => {
     setError(null);
@@ -23,6 +34,18 @@ export function VerifyDrop(): React.ReactElement {
       .then((r) => setResult(r))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (initialCertificateJson === null || initialCertificateJson.trim() === "") {
+      return;
+    }
+    if (hashBootstrapDone.current) {
+      return;
+    }
+    hashBootstrapDone.current = true;
+    setRaw(initialCertificateJson);
+    runVerify(initialCertificateJson);
+  }, [initialCertificateJson, runVerify]);
 
   const onFile = useCallback(
     (file: File) => {
@@ -63,7 +86,7 @@ export function VerifyDrop(): React.ReactElement {
           try {
             text = rawCertificateJsonFromQrPayload(qr);
           } catch {
-            setError("QR-Inhalt ist kein gültiges Zertifikat (Base64URL).");
+            setError("QR-Inhalt konnte nicht als Zertifikat gelesen werden.");
             return;
           }
           setRaw(text);
@@ -118,7 +141,7 @@ export function VerifyDrop(): React.ReactElement {
 
       <div className="mt-6">
         <label className="block text-sm font-medium text-stone-800" htmlFor="verify-paste">
-          JSON einfügen
+          JSON oder QR-Link einfügen
         </label>
         <textarea
           id="verify-paste"
@@ -133,7 +156,12 @@ export function VerifyDrop(): React.ReactElement {
           type="button"
           className="mt-3 rounded-md bg-sky-800 px-4 py-2 text-sm font-medium text-white hover:bg-sky-900"
           onClick={() => {
-            runVerify(raw);
+            try {
+              const body = coerceVerifyClipboardOrQrText(raw);
+              runVerify(body);
+            } catch {
+              setError("Eingegebener Text ist weder gültiges JSON noch ein gültiger QR-Inhalt.");
+            }
           }}
           data-cy="paste-submit"
         >

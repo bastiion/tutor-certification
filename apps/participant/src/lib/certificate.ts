@@ -9,6 +9,7 @@ import { z } from "zod";
 
 const certLikeSchema = z.object({
   cert_id: z.string().min(1),
+  schema_version: z.literal(1),
   course: z.object({
     id: z.string().min(1),
   }),

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { enrollmentQrPayloadFromRawBody, qrCodeSvgForPayload } from "../lib/qr.ts";
+import { CURRENT_CERT_SCHEMA_VERSION } from "@bastiion/crypto";
+import { qrCodeSvgForPayload, qrUrlForCertResponse } from "../lib/qr.ts";
 import { parseCertificateForDisplay, verifyIssuedCertificate } from "../lib/certificate.ts";
 
 function printPage() {
@@ -8,9 +9,19 @@ function printPage() {
   }
 }
 
+function readSchemaVersion(rawBody: string): number | undefined {
+  try {
+    const o = JSON.parse(rawBody) as { schema_version?: unknown };
+    return typeof o.schema_version === "number" ? o.schema_version : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function CertView(props: { rawBody: string }) {
   const [svg, setSvg] = useState<string | null>(null);
   const [gateError, setGateError] = useState<string | null>(null);
+  const [schemaWarning, setSchemaWarning] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,10 +34,25 @@ export function CertView(props: { rawBody: string }) {
         );
         return;
       }
-      const payload = enrollmentQrPayloadFromRawBody(props.rawBody);
-      const nextSvg = await qrCodeSvgForPayload(payload);
-      if (!cancelled) {
-        setSvg(nextSvg);
+
+      const sv = readSchemaVersion(props.rawBody);
+      if (sv !== undefined && sv !== CURRENT_CERT_SCHEMA_VERSION) {
+        setSchemaWarning(
+          `Hinweis: Dieses Zertifikat meldet Schema-Version ${String(sv)} — erwartet wird ${String(CURRENT_CERT_SCHEMA_VERSION)}.`,
+        );
+      }
+
+      const verifyBaseUrl =
+        typeof window !== "undefined" ? `${window.location.origin}/verify/` : "/verify/";
+      const qrUrl = qrUrlForCertResponse(props.rawBody, verifyBaseUrl);
+
+      try {
+        const nextSvg = await qrCodeSvgForPayload(qrUrl);
+        if (!cancelled) {
+          setSvg(nextSvg);
+        }
+      } catch {
+        if (!cancelled) setSvg(null);
       }
     })();
     return () => {
@@ -47,6 +73,11 @@ export function CertView(props: { rawBody: string }) {
   const d = parseCertificateForDisplay(props.rawBody);
   const downloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(props.rawBody)}`;
   const downloadName = `bescheinigung-${d.certId}.json`;
+
+  const typeVerifyUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/verify/${encodeURIComponent(d.certId)}`
+      : `/verify/${encodeURIComponent(d.certId)}`;
 
   return (
     <div className="print-area">
@@ -90,13 +121,16 @@ export function CertView(props: { rawBody: string }) {
         <p className="mt-1 text-center text-lg font-medium text-stone-900">{d.courseTitle}</p>
         <p className="mt-1 text-center text-sm text-stone-700">{d.courseDate}</p>
 
+        {schemaWarning ? (
+          <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 no-print">
+            {schemaWarning}
+          </p>
+        ) : null}
+
         <div className="mt-8 flex flex-wrap items-end justify-between gap-6 border-t border-stone-200 pt-6">
           <div className="min-w-[200px]">
             <p className="text-xs font-medium uppercase tracking-wide text-stone-500">Instituts-Fingerprint</p>
-            <p
-              className="mt-1 break-all font-mono text-xs text-stone-800"
-              data-cy="certificate-fingerprint"
-            >
+            <p className="mt-1 break-all font-mono text-xs text-stone-800" data-cy="certificate-fingerprint">
               {d.keyFingerprint}
             </p>
             <p className="mt-3 text-xs text-stone-500">
@@ -118,6 +152,17 @@ export function CertView(props: { rawBody: string }) {
             </p>
           </div>
         </div>
+
+        {d.certId !== "" ? (
+          <p
+            className="mt-4 text-xs not-italic text-stone-600"
+            data-cy="certificate-verify-caption"
+          >
+            Diese Bescheinigung kann unter{" "}
+            <span className="font-mono">{typeVerifyUrl}</span> oder durch Scannen des nebenstehenden QR-Codes
+            geprüft werden.
+          </p>
+        ) : null}
       </section>
     </div>
   );

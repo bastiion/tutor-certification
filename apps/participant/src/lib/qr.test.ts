@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { base64urlDecode } from "@bastiion/crypto";
-import { enrollmentQrPayloadFromRawBody, qrCodeSvgForPayload } from "./qr.ts";
+import {
+  rawCertificateJsonFromQrPayload,
+  stripQrUrlPrefix,
+} from "../../../verify/src/lib/enrollmentQrPayload.ts";
+import { enrollmentQrPayloadFromRawBody, qrCodeSvgForPayload, qrUrlForCertResponse } from "./qr.ts";
 
 describe("enrollment QR", () => {
   test("payload is base64url without padding of raw UTF-8 body", () => {
@@ -19,5 +23,18 @@ describe("enrollment QR", () => {
     expect(svg.includes("<svg")).toBe(true);
     expect(svg.includes("</svg>")).toBe(true);
     expect(svg.length > 800).toBe(true);
+  });
+
+  test("qrUrlForCertResponse round-trips via stripQrUrlPrefix + decoder", () => {
+    const raw = JSON.stringify({
+      cert_id: "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee",
+      participant: { name: "Test" },
+    });
+    const base = "https://certs.example.org/verify/";
+    const url = qrUrlForCertResponse(raw, base);
+    expect(url).toContain("#cert=");
+    const inner = stripQrUrlPrefix(url);
+    expect(inner).toBe(enrollmentQrPayloadFromRawBody(raw));
+    expect(rawCertificateJsonFromQrPayload(url)).toBe(raw);
   });
 });

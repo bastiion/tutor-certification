@@ -72,7 +72,8 @@ export async function promptForFields(secrets: GeneratedSecrets): Promise<EnvFie
   }
 
   const tutorEmail = await p.text({
-    message: "Tutor notification inbox (TUTOR_EMAIL)",
+    message:
+      "Backup tutor inbox (TUTOR_EMAIL) — mailed as Blindkopie on certificate issue/revocation when it differs case-insensitively from each session tutor address.",
     placeholder: "tutor@example.org",
     validate: (v) => (v.trim() === "" ? "Required" : undefined),
   });

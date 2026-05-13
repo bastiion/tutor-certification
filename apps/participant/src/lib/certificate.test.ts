@@ -41,7 +41,7 @@ async function mintRawCertificateFixture(overrides?: {
   crypto.getRandomValues(fakeCourseSig);
   const blob = {
     cert_id: crypto.randomUUID(),
-    version: 1,
+    schema_version: 1,
     issued_at: "2026-05-11T12:00:00+00:00",
     course: { id: courseId, title: "Kurs", date: "2026-05-11" },
     participant: { name: "Ada" },
@@ -99,7 +99,7 @@ describe("verifyIssuedCertificate", () => {
   test("rejects invalid base64url fields after schema passes shape", async () => {
     const raw = JSON.stringify({
       cert_id: "x",
-      version: 1,
+      schema_version: 1,
       course: { id: "c".repeat(36) },
       institute: { name: "i", key_fingerprint: "f".repeat(64) },
       K_master_public: "@@@",

@@ -100,6 +100,7 @@ describe("buildCanonicalSessionCredential", () => {
     expect(cred.course_title).toBe(inputs.courseTitle);
     expect(cred.course_date).toBe(inputs.courseDate);
     expect(cred.institute_name).toBe(inputs.instituteName);
+    expect(cred.tutor_email).toBe(inputs.tutorEmail);
 
     for (const field of [
       "K_master_public",

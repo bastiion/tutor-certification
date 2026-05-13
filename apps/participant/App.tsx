@@ -1,12 +1,13 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { cryptoPackageStatus, ready, type PackageStatus } from "@bastiion/crypto";
 import "./index.css";
-import { useParticipantRoute } from "./src/useParticipantRoute.ts";
+import { AppVersionFooter } from "./src/components/AppVersionFooter.tsx";
 import { CertView } from "./src/pages/CertView.tsx";
 import { EnrollForm } from "./src/pages/EnrollForm.tsx";
 import { Expired } from "./src/pages/Expired.tsx";
+import { useParticipantRoute } from "./src/useParticipantRoute.ts";
 
-export function App() {
+export function App(): ReactElement {
   const route = useParticipantRoute();
   const [issuedRawBody, setIssuedRawBody] = useState<string | null>(null);
   const [status, setStatus] = useState<PackageStatus | null>(null);
@@ -37,7 +38,8 @@ export function App() {
   return (
     <div data-cy="enroll-root" className="min-h-screen">
       {body}
-      <footer className="no-print mx-auto max-w-xl px-8 pb-6 text-center text-xs text-stone-400">
+      <footer className="no-print mx-auto max-w-xl space-y-1 px-8 pb-6 text-center text-xs text-stone-400">
+        <AppVersionFooter />
         <p data-cy="crypto-package-status">{cryptoLine}</p>
       </footer>
     </div>

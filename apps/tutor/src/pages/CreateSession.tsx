@@ -13,6 +13,19 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 const TUTOR_RECENTS_KEY = "tutor_recents_v1";
+const TUTOR_EMAIL_SESSION_KEY = "tutorEmail";
+
+function readStoredTutorEmail(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  try {
+    const v = window.sessionStorage.getItem(TUTOR_EMAIL_SESSION_KEY);
+    return typeof v === "string" ? v.trim() : "";
+  } catch {
+    return "";
+  }
+}
 
 interface RecentSession {
   course_id: string;
@@ -116,7 +129,7 @@ export function CreateSession() {
     courseTitle: "",
     courseDate: defaultCourseDate(),
     instituteName: "",
-    tutorEmail: "",
+    tutorEmail: readStoredTutorEmail(),
     validUntilLocal: defaultValidUntilLocal(),
   }));
   const [submitting, setSubmitting] = useState(false);
@@ -214,6 +227,11 @@ export function CreateSession() {
         enroll_url: payload.enroll_url,
         created_at: new Date().toISOString(),
       });
+      try {
+        window.sessionStorage.setItem(TUTOR_EMAIL_SESSION_KEY, form.tutorEmail.trim());
+      } catch {
+        /* ignore storage */
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler.");
     } finally {
@@ -395,14 +413,18 @@ export function CreateSession() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-stone-700">Tutor-E-Mail</span>
+          <span className="mb-1 block text-sm font-medium text-stone-700">Tutor:in-E-Mail</span>
           <input
             type="email"
             value={form.tutorEmail}
             onChange={(e) => update("tutorEmail", e.target.value)}
-            data-cy="session-email"
+            data-cy="session-tutor-email-input"
             className="w-full rounded-lg border border-stone-300 px-3 py-2 shadow-sm focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
           />
+          <p className="mt-1 text-xs text-stone-500" data-cy="session-tutor-email-help">
+            Als „An:“ für Ausstellungs- und Sperrmails. Unterscheidet sich die Server-Konfiguration
+            (<code className="font-mono">TUTOR_EMAIL</code>), wird sie als Blindkopie ergänzt.
+          </p>
         </label>
 
         {error ? (

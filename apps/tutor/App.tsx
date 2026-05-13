@@ -10,6 +10,7 @@
  */
 
 import "./index.css";
+import { AppVersionFooter } from "./src/components/AppVersionFooter.tsx";
 import { KeyVaultProvider } from "./src/KeyVault.tsx";
 import { Link } from "./src/Link.tsx";
 import { ServerConfigProvider } from "./src/ServerConfig.tsx";
@@ -60,6 +61,9 @@ export function App() {
         <div className="app-root min-h-screen bg-stone-100 text-stone-900">
           <ServerConfigPanel />
           <CurrentPage />
+          <footer className="no-print border-t border-stone-200 bg-stone-100 px-4 py-4 text-center">
+            <AppVersionFooter />
+          </footer>
         </div>
       </KeyVaultProvider>
     </ServerConfigProvider>

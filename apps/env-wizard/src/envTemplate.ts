@@ -69,6 +69,7 @@ export function renderEnvFile(f: EnvFields): string {
     `TUTOR_API_TOKEN=${quoteIfNeeded(f.TUTOR_API_TOKEN)}`,
     ``,
     `# --- API runtime ---`,
+    `# Tutor inbox: backup Blindkopie only when differing from session tutor_email (compare case-insensitively)`,
     `TUTOR_EMAIL=${quoteIfNeeded(f.TUTOR_EMAIL)}`,
     `# Public origin for enrollment URLs from POST /api/sessions (no trailing slash)`,
     `PUBLIC_BASE_URL=${quoteIfNeeded(f.PUBLIC_BASE_URL)}`,

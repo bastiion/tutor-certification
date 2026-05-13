@@ -1,4 +1,10 @@
-import { base64urlEncode, keypairFromSeed, ready, signDetached } from "@bastiion/crypto";
+import {
+  CURRENT_REVOCATION_SCHEMA_VERSION,
+  base64urlEncode,
+  keypairFromSeed,
+  ready,
+  signDetached,
+} from "@bastiion/crypto";
 
 export type PostRevocationResult =
   | { ok: true; status: 200 | 409 }
@@ -34,6 +40,7 @@ export async function postRevocation(input: PostRevocationInput): Promise<PostRe
       revoked_at: input.revokedAt,
       reason: input.reason,
       signature,
+      schema_version: CURRENT_REVOCATION_SCHEMA_VERSION,
     };
     const res = await fetchFn(`${normalizeBase(input.apiBaseUrl)}/revocations`, {
       method: "POST",

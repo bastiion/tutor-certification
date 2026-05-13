@@ -4,7 +4,7 @@ import { certificateWireSchema, revocationDocSchema } from "./certificateSchema.
 describe("certificateWireSchema", () => {
   const minimal = {
     cert_id: "00000000-0000-4000-8000-000000000001",
-    version: 1 as const,
+    schema_version: 1 as const,
     issued_at: "2026-05-11T12:00:00+00:00",
     course: { id: "c1", title: "T", date: "2026-05-11" },
     participant: { name: "N" },
@@ -16,7 +16,7 @@ describe("certificateWireSchema", () => {
     certificate_sig: "z",
   };
 
-  test("accepts the Stage 4 / API wire shape", () => {
+  test("accepts the Stage 6b / API wire shape", () => {
     const r = certificateWireSchema.safeParse(minimal);
     expect(r.success).toBe(true);
   });
@@ -26,8 +26,8 @@ describe("certificateWireSchema", () => {
     expect(r.success).toBe(false);
   });
 
-  test("rejects wrong version", () => {
-    const r = certificateWireSchema.safeParse({ ...minimal, version: 2 });
+  test("rejects wrong schema_version", () => {
+    const r = certificateWireSchema.safeParse({ ...minimal, schema_version: 2 });
     expect(r.success).toBe(false);
   });
 
@@ -49,6 +49,7 @@ describe("revocationDocSchema", () => {
       revoked_at: "2026-05-11T12:00:00.000Z",
       reason: "r",
       signature: "sig",
+      schema_version: 1,
     });
     expect(r.success).toBe(true);
   });
@@ -59,6 +60,7 @@ describe("revocationDocSchema", () => {
       revoked_at: "2026-05-11T12:00:00.000Z",
       reason: "r",
       signature: "sig",
+      schema_version: 1,
       x: 1,
     });
     expect(r.success).toBe(false);
