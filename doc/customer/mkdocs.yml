@@ -1,5 +1,6 @@
 site_name: "Teilnahmebescheinigungen — Handbuch"
 site_description: "Anleitung für Tutor:innen, Teilnehmer:innen und prüfende Stellen"
+site_url: https://bastiion.github.io/tutor-certification/
 docs_dir: docs
 site_dir: site
 

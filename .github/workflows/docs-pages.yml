@@ -1,0 +1,55 @@
+name: Docs Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: docs-pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MkDocs + Material
+        run: pip install mkdocs mkdocs-material pymdown-extensions
+
+      - name: Build docs (strict)
+        run: mkdocs build --strict --config-file doc/customer/mkdocs.yml
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: doc/customer/site/
+
+      - name: Job summary — docs build
+        if: success()
+        run: |
+          {
+            echo "## Docs (Pages)"
+            echo "- \`mkdocs build --strict\` succeeded; artifact uploaded for Pages deployment"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  deploy-docs:
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -202,6 +202,7 @@ Long-form reference (jobs, artifacts, Dependabot, `act`): **[CI.md](CI.md)**.
 
 **On GitHub**: workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pushes to `main` and on pull requests:
 
+- **Docs Pages** — [`.github/workflows/docs-pages.yml`](.github/workflows/docs-pages.yml) builds the customer MkDocs book ([`doc/customer/`](doc/customer)) and deploys it to **GitHub Pages** on every push to `main` (live handbook: [**bastiion.github.io/tutor-certification**](https://bastiion.github.io/tutor-certification/);
 - **workflow-lint** — [actionlint](https://github.com/rhysd/actionlint) on workflow files
 - **frontend** — `bun install --frozen-lockfile`, `typecheck`, `build`, `build:compose`, uploads **`static-spa`**
 - **backend** — `docker compose` PHP image; Pest coverage + **`--min=90`**, Mailpit integration, JUnit + Clover + HTML uploads
