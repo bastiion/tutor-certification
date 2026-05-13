@@ -1,0 +1,64 @@
+site_name: "Teilnahmebescheinigungen — Handbuch"
+site_description: "Anleitung für Tutor:innen, Teilnehmer:innen und prüfende Stellen"
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: de
+  font: false
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Startseite: index.md
+  - Schnellstart: schnellstart.md
+  - "Tutor:in":
+    - tutor/index.md
+    - "Schlüssel anlegen": tutor/01-schluessel-anlegen.md
+    - "Server verbinden": tutor/02-server-verbinden.md
+    - "Sitzung erstellen": tutor/03-sitzung-erstellen.md
+    - "Liste drucken": tutor/04-liste-drucken.md
+    - "Audit & Widerruf": tutor/05-audit-und-widerruf.md
+    - "E-Mail-Vorschau (Mailpit)": tutor/06-mailpit-vorschau.md
+    - "Sicherheit: K_master": tutor/sicherheit-k-master.md
+  - "Teilnehmer:in":
+    - teilnehmer/index.md
+    - "Link öffnen": teilnehmer/01-link-oeffnen.md
+    - "Bescheinigung erhalten": teilnehmer/02-bescheinigung-erhalten.md
+    - "Bescheinigung sichern": teilnehmer/03-bescheinigung-sichern.md
+    - "QR-Code erklärt": teilnehmer/qr-code-erklaert.md
+    - "Link abgelaufen": teilnehmer/link-abgelaufen.md
+  - "Prüfende Stelle":
+    - pruefung/index.md
+    - "Online prüfen": pruefung/01-online-pruefen.md
+    - "Offline prüfen": pruefung/02-offline-pruefen.md
+    - "Widerruf erklärt": pruefung/widerruf-erklaert.md
+    - "Ergebnis anzeigen": pruefung/ergebnis-anzeigen.md
+  - Glossar: glossar.md
+  - "Technischer Hintergrund":
+    - technik/index.md
+    - "Kryptographie (DE)": technik/kryptographie-de.md
+    - "Cryptography (EN)": technik/kryptographie-en.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_javascript:
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js

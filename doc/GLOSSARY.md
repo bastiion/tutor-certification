@@ -6,4 +6,4 @@ Short explainers for tools and config files used in this repo.
 |---------|--------|
 | New to PHP and this project's backend layout | [PHP glossary](GLOSSARY-php.md) |
 | New to Bun, TypeScript, or frontend test tooling here | [TypeScript / Bun / frontend glossary](GLOSSARY-typescript-bun.md) |
-| New to Cryptography, signing, and keys in this project | [Cryptography glossary](GLOSSAR_crypt.md) |
+| New to Cryptography, signing, and keys in this project | [Cryptography glossary (EN)](customer/docs/technik/kryptographie-en.md) · [Kryptographie-Glossar (DE)](customer/docs/technik/kryptographie-de.md) |

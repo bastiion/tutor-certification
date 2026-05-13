@@ -29,6 +29,8 @@
           docker-compose
           php84
           php84Packages.composer
+          python3Packages.mkdocs
+          python3Packages.mkdocs-material
         ];
       in
       {

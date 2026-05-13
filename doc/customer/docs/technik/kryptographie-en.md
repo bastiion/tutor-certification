@@ -74,6 +74,7 @@ We don't use just one key for everything. We split the risk:
 - **Learn more**: 
   - [X25519 Key Exchange: Hands-on Interactive](https://x25519.xargs.org/) - Step-by-step calculator demonstrating key exchange
   - [The Animated Elliptic Curve](https://curves.xargs.org/) - Visual explanation of the math behind Curve25519
+  - [Elliptic-curve Diffie–Hellman (Wikipedia)](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) - Overview and mathematical background
 
 ---
 

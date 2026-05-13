@@ -47,6 +47,10 @@
     "test:backend:coverage": "docker compose run --rm --entrypoint composer php test:coverage-bootstrap",
     "analyse:backend": "docker compose run --rm --entrypoint composer php analyse",
     "ci:local": "bun run typecheck && bun run test && bun run build && bun run build:compose && bun run openapi:check && bun run test:backend:coverage && bun run analyse:backend",
+    "docs:capture": "bun run cypress:build-tasks && bash -lc 'set -a && [ -f docker/php/dev.env ] && . docker/php/dev.env; set +a && CYPRESS_BASE_URL=http://localhost:7123 CYPRESS_DOC_MODE=1 cypress run --spec e2e/doc-screenshots.cy.ts' && bun scripts/sync-doc-screenshots.cli.ts",
+    "docs:build": "nix develop -c mkdocs build --config-file doc/customer/mkdocs.yml",
+    "docs:serve": "nix develop -c mkdocs serve --config-file doc/customer/mkdocs.yml",
+    "docs:check": "bun scripts/check-doc-image-refs.cli.ts && nix develop -c mkdocs build --strict --config-file doc/customer/mkdocs.yml",
     "ci:act:list": "act --list",
     "ci:act": "act pull_request --verbose"
   },

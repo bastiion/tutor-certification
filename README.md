@@ -241,4 +241,6 @@ nix develop -c bun run ci:act
 - [GitHub CI + act + Dependabot](doc/implementation/2026-05-11-github-ci-and-act.md)
 - [Production Docker image + GHCR release](doc/implementation/2026-05-11-production-docker-release.md)
 - [CI reference (pipelines, act, artifacts)](CI.md)
-- [Glossaries](doc/GLOSSARY.md) — PHP, TypeScript/Bun, and Cryptography guides for beginners
+- [Glossaries](doc/GLOSSARY.md) — PHP, TypeScript/Bun guides for beginners
+- [Cryptography background (EN)](doc/customer/docs/technik/kryptographie-en.md) — Keys, signatures and algorithms explained
+- [Kryptographie-Hintergrund (DE)](doc/customer/docs/technik/kryptographie-de.md) — Schlüssel, Signaturen und Algorithmen erklärt

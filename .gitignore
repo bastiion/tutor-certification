@@ -72,3 +72,6 @@ composer.phar
 
 # Typedoc (optional `bun run docs:crypto`)
 docs/api/
+
+# MkDocs built output (customer docs)
+doc/customer/site/
