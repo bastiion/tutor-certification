@@ -43,6 +43,32 @@ describe("auditStore", () => {
     expect(ord[0]).toBe(b.cert.cert_id);
   });
 
+  test("sortedRows breaks ties by certId when issued_at matches", () => {
+    let s = emptyAuditState();
+    const sameTime = "2026-05-11T12:00:00.000Z";
+    const lo = minimalCert({ cert_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", issued_at: sameTime });
+    const hi = minimalCert({ cert_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", issued_at: sameTime });
+    s = upsertCertificate(s, lo.raw, lo.cert);
+    s = upsertCertificate(s, hi.raw, hi.cert);
+    const tieOrder = [lo.cert.cert_id, hi.cert.cert_id];
+    expect(sortedRows(s, "issued_desc").map((r) => r.certId)).toEqual(tieOrder);
+    expect(sortedRows(s, "issued_asc").map((r) => r.certId)).toEqual(tieOrder);
+  });
+
+  test("sortedRows issued_asc orders by issued_at oldest first", () => {
+    let s = emptyAuditState();
+    const early = minimalCert({ cert_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", issued_at: "2026-01-01T00:00:00.000Z" });
+    const late = minimalCert({ cert_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", issued_at: "2026-06-01T00:00:00.000Z" });
+    s = upsertCertificate(s, early.raw, early.cert);
+    s = upsertCertificate(s, late.raw, late.cert);
+    expect(sortedRows(s, "issued_asc").map((r) => r.certId)).toEqual([early.cert.cert_id, late.cert.cert_id]);
+  });
+
+  test("markRevoked is a no-op when cert id is unknown", () => {
+    const s = emptyAuditState();
+    expect(markRevoked(s, "missing", "2026-05-12T00:00:00.000Z", "x")).toBe(s);
+  });
+
   test("markRevoked + export + import round-trip", () => {
     let s = emptyAuditState();
     const { cert, raw } = minimalCert();

@@ -111,5 +111,25 @@ describe("postRevocation", () => {
     });
     expect(r5).toEqual({ ok: false, status: 500, message: "nope" });
     seed5.fill(0);
+
+    const seed6 = new Uint8Array(32);
+    crypto.getRandomValues(seed6);
+    const fetchTextThrows = mock(() =>
+      Promise.resolve({
+        status: 502,
+        text: () => Promise.reject(new Error("read failed")),
+      } as unknown as Response),
+    );
+    const r6 = await postRevocation({
+      apiBaseUrl: "https://x.example/api",
+      bearerToken: "tok",
+      certId: "cid-1",
+      revokedAt: "2026-05-11T12:00:00.000Z",
+      reason: "r",
+      kMasterSeed32: seed6,
+      fetchImpl: fetchTextThrows as unknown as typeof fetch,
+    });
+    expect(r6).toEqual({ ok: false, status: 502, message: "HTTP 502" });
+    seed6.fill(0);
   });
 });

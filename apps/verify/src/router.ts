@@ -14,7 +14,7 @@ export function resolveVerifyRoute(pathname: string): VerifyRoute {
   }
 
   const trimmed = pathname.replace(/\/+$/, "");
-  if (trimmed === VERIFY_BASE || trimmed === `${VERIFY_BASE}/`) {
+  if (trimmed === VERIFY_BASE) {
     return { kind: "drop" };
   }
 

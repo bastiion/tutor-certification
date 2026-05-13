@@ -31,6 +31,62 @@ describe("parseEmailAttachments", () => {
     expect(h.get("x-test")).toBe("line1 continued");
   });
 
+  test("parseMailHeaders ignores leading folded line before first field", () => {
+    const h = parseMailHeaders(" folded-only\r\nX: y\r\n");
+    expect(h.get("x")).toBe("y");
+  });
+
+  test("parseMailHeaders skips colon-less lines between fields", () => {
+    const h = parseMailHeaders("Subject: hi\r\nnot-a-header-line\r\nX-Other: z\r\n");
+    expect(h.get("subject")).toBe("hi");
+    expect(h.get("x-other")).toBe("z");
+  });
+
+  test("extractCertificatesFromEml returns empty when there is no header/body separator", () => {
+    expect(extractCertificatesFromEml("Subject: one line only")).toEqual([]);
+  });
+
+  test("decodeTransfer treats unknown encoding like 8bit as literal body", () => {
+    const json = certJson();
+    const eml = ["Content-Type: application/json", "Content-Transfer-Encoding: 8bit", "", json].join("\r\n");
+    expect(extractCertificatesFromEml(eml)).toEqual([json]);
+  });
+
+  test("nested multipart part with multipart type but no boundary yields no JSON from that branch", () => {
+    const json = certJson();
+    const eml = [
+      "Content-Type: multipart/mixed; boundary=outer",
+      "",
+      "--outer",
+      "Content-Type: multipart/mixed",
+      "",
+      "no nested boundary here",
+      "--outer",
+      "Content-Type: application/json",
+      "",
+      json,
+      "--outer--",
+    ].join("\r\n");
+    expect(extractCertificatesFromEml(eml)).toEqual([json]);
+  });
+
+  test("inline JSON scanner returns nothing when matched object fails parseInboundJson", () => {
+    const bad = '{"cert_id":"x"}';
+    const eml = ["Content-Type: text/plain", "", `x ${bad} y`].join("\r\n");
+    expect(extractCertificatesFromEml(eml)).toEqual([]);
+  });
+
+  test("splitMboxMessages splits when a new From line starts the next message", () => {
+    const json = certJson();
+    const m1 = ["Content-Type: application/json", "", json].join("\r\n");
+    const m2 = ["Content-Type: text/plain", "", "hi"].join("\r\n");
+    const mbox = ["From a Fri Sep  1 00:00:00 2026", m1, "From b Sat Sep  2 00:00:00 2026", m2].join("\n");
+    const parts = splitMboxMessages(mbox);
+    expect(parts.length).toBe(2);
+    expect(parts[0]).toContain("application/json");
+    expect(parts[1]).toContain("text/plain");
+  });
+
   test("extractCertificatesFromEml finds JSON attachment (base64)", () => {
     const json = certJson();
     const b64 = btoa(unescape(encodeURIComponent(json)));

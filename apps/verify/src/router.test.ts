@@ -33,6 +33,16 @@ describe("resolveVerifyRoute", () => {
     expect(resolveVerifyRoute("/verify/%")).toEqual({ kind: "drop" });
   });
 
+  test("decoded cert id of length zero yields drop (defensive branch)", () => {
+    const orig = globalThis.decodeURIComponent;
+    globalThis.decodeURIComponent = ((s: string) => (s === "__empty__" ? "" : orig(s))) as typeof decodeURIComponent;
+    try {
+      expect(resolveVerifyRoute("/verify/__empty__")).toEqual({ kind: "drop" });
+    } finally {
+      globalThis.decodeURIComponent = orig;
+    }
+  });
+
   test("empty or non-string path yields drop", () => {
     expect(resolveVerifyRoute("")).toEqual({ kind: "drop" });
     expect(resolveVerifyRoute(undefined as unknown as string)).toEqual({ kind: "drop" });

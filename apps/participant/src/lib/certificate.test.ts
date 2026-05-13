@@ -91,6 +91,11 @@ describe("verifyIssuedCertificate", () => {
     expect(res).toEqual({ ok: false, reason: "schema" });
   });
 
+  test("rejects invalid JSON", async () => {
+    const res = await verifyIssuedCertificate("not-json");
+    expect(res).toEqual({ ok: false, reason: "parse" });
+  });
+
   test("rejects invalid base64url fields after schema passes shape", async () => {
     const raw = JSON.stringify({
       cert_id: "x",

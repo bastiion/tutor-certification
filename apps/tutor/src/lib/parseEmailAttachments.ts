@@ -1,13 +1,5 @@
 import { parseInboundJson } from "./parseInboundJson.ts";
 
-function stripOptionalQuotes(v: string): string {
-  const t = v.trim();
-  if (t.startsWith('"') && t.endsWith('"') && t.length >= 2) {
-    return t.slice(1, -1);
-  }
-  return t;
-}
-
 /** Parse RFC 5322 header block into lower-cased field names (first line only per field). */
 export function parseMailHeaders(headerBlock: string): Map<string, string> {
   const lines = headerBlock.split(/\r?\n/);
@@ -46,7 +38,7 @@ function headerParam(headers: Map<string, string>, name: string): string | null 
 function boundaryFromContentType(ct: string): string | null {
   const m = /boundary\s*=\s*("?)([^";\s]+)\1/i.exec(ct);
   const raw = m?.[2];
-  return raw !== undefined ? stripOptionalQuotes(raw) : null;
+  return raw !== undefined ? raw : null;
 }
 
 function decodeTransfer(body: string, encoding: string | undefined): string {
